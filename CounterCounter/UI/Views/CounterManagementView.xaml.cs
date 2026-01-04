@@ -21,7 +21,7 @@ namespace CounterCounter.UI.Views
             RefreshCounterList();
         }
 
-        private void OnCounterChanged(object? sender, CounterChangeEventArgs e)
+        private void OnCounterChanged(object? sender, CounterChangedEventArgs e)
         {
             Dispatcher.Invoke(() => RefreshCounterList());
         }

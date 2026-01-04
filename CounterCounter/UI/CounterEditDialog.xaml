@@ -1,28 +1,29 @@
-﻿<!-- CounterCounter/UI/CounterEditDialog.xaml -->
-<Window x:Class="CounterCounter.UI.CounterEditDialog"
+﻿<Window x:Class="CounterCounter.UI.CounterEditDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="カウンター編集"
-        Width="400"
-        Height="250"
+        Width="450" Height="400"
         WindowStartupLocation="CenterOwner"
-        Background="#1e1e1e">
+        Background="#1e1e1e"
+        ResizeMode="NoResize">
 
     <Window.Resources>
         <Style TargetType="Button">
             <Setter Property="Background" Value="#2d2d30"/>
-            <Setter Property="Foreground" Value="#ffffff"/>
+            <Setter Property="Foreground" Value="#f0f0f0"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Padding" Value="15,8"/>
             <Setter Property="Margin" Value="5"/>
+            <Setter Property="FontSize" Value="14"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" 
-                                CornerRadius="4"
-                                Padding="{TemplateBinding Padding}">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <Border Background="{TemplateBinding Background}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="4">
+                            <ContentPresenter HorizontalAlignment="Center" 
+                                            VerticalAlignment="Center"/>
                         </Border>
                     </ControlTemplate>
                 </Setter.Value>
@@ -34,18 +35,20 @@
             </Style.Triggers>
         </Style>
 
-        <Style TargetType="TextBox">
-            <Setter Property="Background" Value="#2d2d30"/>
-            <Setter Property="Foreground" Value="#ffffff"/>
-            <Setter Property="BorderBrush" Value="#3f3f46"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="8,6"/>
-            <Setter Property="Margin" Value="5"/>
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#f0f0f0"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Margin" Value="0,5"/>
         </Style>
 
-        <Style TargetType="TextBlock">
-            <Setter Property="Foreground" Value="#ffffff"/>
-            <Setter Property="Margin" Value="5"/>
+        <Style TargetType="TextBox">
+            <Setter Property="Background" Value="#2d2d30"/>
+            <Setter Property="Foreground" Value="#f0f0f0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="#3e3e42"/>
+            <Setter Property="Padding" Value="8"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Margin" Value="0,5"/>
         </Style>
     </Window.Resources>
 
@@ -54,25 +57,54 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <TextBlock Grid.Row="0" Text="カウンター名" FontWeight="Bold"/>
-        <TextBox Grid.Row="1" x:Name="NameTextBox" FontSize="14"/>
+        <TextBox Grid.Row="1" x:Name="NameTextBox" MaxLength="50"/>
 
-        <TextBlock Grid.Row="2" Text="色" FontWeight="Bold" Margin="0,10,0,0"/>
-        <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="5">
-            <Button Content="赤" Click="ColorButton_Click" Tag="#ff0000" Width="60"/>
-            <Button Content="緑" Click="ColorButton_Click" Tag="#00ff00" Width="60"/>
-            <Button Content="青" Click="ColorButton_Click" Tag="#0080ff" Width="60"/>
-            <Button Content="黄" Click="ColorButton_Click" Tag="#ffff00" Width="60"/>
-            <Button Content="白" Click="ColorButton_Click" Tag="#ffffff" Width="60"/>
+        <TextBlock Grid.Row="2" Text="色" FontWeight="Bold" Margin="0,15,0,5"/>
+        <StackPanel Grid.Row="3" Orientation="Horizontal">
+            <Button x:Name="ColorRedButton" Content="赤" Background="#ff6b6b" Click="ColorButton_Click" Tag="#ff6b6b" Width="70"/>
+            <Button x:Name="ColorGreenButton" Content="緑" Background="#51cf66" Click="ColorButton_Click" Tag="#51cf66" Width="70"/>
+            <Button x:Name="ColorBlueButton" Content="青" Background="#339af0" Click="ColorButton_Click" Tag="#339af0" Width="70"/>
+            <Button x:Name="ColorYellowButton" Content="黄" Background="#ffd43b" Click="ColorButton_Click" Tag="#ffd43b" Width="70"/>
+            <Button x:Name="ColorPurpleButton" Content="紫" Background="#cc5de8" Click="ColorButton_Click" Tag="#cc5de8" Width="70"/>
         </StackPanel>
 
-        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
-            <Button Content="OK" Click="Ok_Click" Width="80"/>
-            <Button Content="キャンセル" Click="Cancel_Click" Width="80"/>
+        <TextBlock Grid.Row="4" Text="ショートカットキー" FontWeight="Bold" Margin="0,15,0,5"/>
+        <Grid Grid.Row="5">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="増加キー:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+            <TextBox Grid.Row="0" Grid.Column="1" x:Name="IncrementKeyTextBox" 
+                     IsReadOnly="True" 
+                     Text="未設定" 
+                     Margin="0,5"/>
+            <Button Grid.Row="0" Grid.Column="2" Content="設定" Click="SetIncrementKey_Click" Width="80"/>
+
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="減少キー:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+            <TextBox Grid.Row="1" Grid.Column="1" x:Name="DecrementKeyTextBox" 
+                     IsReadOnly="True" 
+                     Text="未設定" 
+                     Margin="0,5"/>
+            <Button Grid.Row="1" Grid.Column="2" Content="設定" Click="SetDecrementKey_Click" Width="80"/>
+        </Grid>
+
+        <StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+            <Button Content="OK" Click="OkButton_Click" Width="100"/>
+            <Button Content="キャンセル" Click="CancelButton_Click" Width="100"/>
         </StackPanel>
     </Grid>
 </Window>

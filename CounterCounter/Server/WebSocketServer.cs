@@ -65,7 +65,7 @@ namespace CounterCounter.Server
             Console.WriteLine($"WebSocket Server started on port {Port}");
         }
 
-        private void OnCounterChanged(object? sender, CounterChangeEventArgs e)
+        private void OnCounterChanged(object? sender, CounterChangedEventArgs e)
         {
             var counter = _counterManager.GetCounter(e.CounterId);
             if (counter == null) return;
