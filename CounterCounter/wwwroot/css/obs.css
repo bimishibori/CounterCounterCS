@@ -1,0 +1,22 @@
+﻿/* CounterCounter/wwwroot/css/obs.css */
+body {
+    margin: 0;
+    background: transparent;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.counter {
+    font-size: 120px;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.8);
+    transition: transform 0.3s ease;
+}
+
+    .counter.flash {
+        transform: scale(1.2);
+    }

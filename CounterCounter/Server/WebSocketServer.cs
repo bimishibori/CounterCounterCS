@@ -1,9 +1,11 @@
-﻿using System;
+﻿// CounterCounter/Server/WebSocketServer.cs
+using System;
 using System.Text.Json;
+using CounterCounter.Core;
 using WebSocketSharp;
 using WebSocketSharp.Server;
 
-namespace CounterCounter
+namespace CounterCounter.Server
 {
     public class WebSocketServer : IDisposable
     {
@@ -16,23 +18,21 @@ namespace CounterCounter
         public WebSocketServer(CounterState counterState, int httpPort)
         {
             _counterState = counterState;
-            _wsPort = httpPort + 1; // HTTPポート + 1 (例: 8765 → 8766)
+            _wsPort = httpPort + 1;
         }
 
         public void Start()
         {
             _server = new WebSocketSharp.Server.WebSocketServer(_wsPort);
-            _server.AddWebSocketService<CounterWebSocketService>("/ws", () =>
+            _server.AddWebSocketService("/ws", () =>
                 new CounterWebSocketService(_counterState));
             _server.Start();
 
-            // カウンター変更時に全クライアントに通知
             _counterState.ValueChanged += OnCounterChanged;
         }
 
         private void OnCounterChanged(object? sender, CounterChangedEventArgs e)
         {
-            // 全接続中のクライアントにブロードキャスト
             _server?.WebSocketServices["/ws"]?.Sessions?.Broadcast(
                 JsonSerializer.Serialize(new
                 {
@@ -56,7 +56,6 @@ namespace CounterCounter
         }
     }
 
-    // WebSocketサービスクラス
     public class CounterWebSocketService : WebSocketBehavior
     {
         private readonly CounterState _counterState;
@@ -70,7 +69,6 @@ namespace CounterCounter
         {
             Console.WriteLine("WebSocket接続: " + ID);
 
-            // 接続時に現在値を送信
             Send(JsonSerializer.Serialize(new
             {
                 type = "counter_update",
