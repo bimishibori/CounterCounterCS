@@ -1,27 +1,26 @@
 ﻿// CounterCounter/UI/TrayIcon.cs
-using System;
 using System.Diagnostics;
+using System.Drawing;
+using System.Windows.Forms;
 using CounterCounter.Core;
 using CounterCounter.Models;
-using WinForms = System.Windows.Forms;
-using WpfClipboard = System.Windows.Clipboard;
-using WpfMessageBox = System.Windows.MessageBox;
-using MessageBoxButton = System.Windows.MessageBoxButton;
-using MessageBoxImage = System.Windows.MessageBoxImage;
+using WpfApp = System.Windows.Application;
 
 namespace CounterCounter.UI
 {
     public class TrayIcon : IDisposable
     {
-        private readonly WinForms.NotifyIcon _notifyIcon;
+        private readonly NotifyIcon _notifyIcon;
         private readonly CounterManager _counterManager;
-        private readonly ConfigManager _configManager;
-        private readonly CounterSettings _settings;
         private readonly int _httpPort;
         private readonly int _wsPort;
-        private MainWindow? _mainWindow;
+        private readonly ConfigManager _configManager;
+        private readonly CounterSettings _settings;
 
-        public TrayIcon(CounterManager counterManager, int httpPort, int wsPort, ConfigManager configManager, CounterSettings settings)
+        public event EventHandler? ShowSettingsRequested;
+
+        public TrayIcon(CounterManager counterManager, int httpPort, int wsPort,
+            ConfigManager configManager, CounterSettings settings)
         {
             _counterManager = counterManager;
             _httpPort = httpPort;
@@ -29,117 +28,91 @@ namespace CounterCounter.UI
             _configManager = configManager;
             _settings = settings;
 
-            _notifyIcon = new WinForms.NotifyIcon
+            _notifyIcon = new NotifyIcon
             {
-                Icon = System.Drawing.SystemIcons.Application,
+                Icon = SystemIcons.Application,
                 Visible = true,
                 Text = $"Counter Counter\nHTTP:{_httpPort} WS:{_wsPort}"
             };
 
-            _notifyIcon.DoubleClick += OnDoubleClick;
-            _notifyIcon.ContextMenuStrip = CreateContextMenu();
+            var contextMenu = new ContextMenuStrip();
+            contextMenu.Items.Add("設定を開く", null, OnShowSettings);
+            contextMenu.Items.Add(new ToolStripSeparator());
+            contextMenu.Items.Add("OBS URLをコピー", null, OnCopyObsUrl);
+            contextMenu.Items.Add(new ToolStripSeparator());
+            contextMenu.Items.Add("設定を保存", null, OnSaveSettings);
+            contextMenu.Items.Add(new ToolStripSeparator());
+            contextMenu.Items.Add("終了", null, OnExit);
 
-            _counterManager.CounterChanged += OnCounterChanged;
+            _notifyIcon.ContextMenuStrip = contextMenu;
+            _notifyIcon.DoubleClick += (s, e) => OnShowSettings(s, e);
         }
 
-        private WinForms.ContextMenuStrip CreateContextMenu()
+        private void OnShowSettings(object? sender, EventArgs e)
         {
-            var menu = new WinForms.ContextMenuStrip();
-
-            menu.Items.Add("設定を開く", null, (s, e) => OpenSettings());
-            menu.Items.Add("管理ページを開く", null, (s, e) => OpenManagerPage());
-            menu.Items.Add("OBS URLをコピー", null, (s, e) => CopyObsUrl());
-            menu.Items.Add(new WinForms.ToolStripSeparator());
-            menu.Items.Add("設定を保存", null, (s, e) => SaveSettings());
-            menu.Items.Add(new WinForms.ToolStripSeparator());
-            menu.Items.Add("終了", null, (s, e) => Exit());
-
-            return menu;
+            ShowSettingsRequested?.Invoke(this, EventArgs.Empty);
         }
 
-        private void OnDoubleClick(object? sender, EventArgs e)
-        {
-            OpenSettings();
-        }
-
-        private void OpenSettings()
-        {
-            if (_mainWindow == null)
-            {
-                _mainWindow = new MainWindow(_counterManager, _configManager, _settings);
-                _mainWindow.Closed += (s, e) => _mainWindow = null;
-            }
-
-            _mainWindow.Show();
-            _mainWindow.Activate();
-        }
-
-        private void OpenManagerPage()
+        private void OnCopyObsUrl(object? sender, EventArgs e)
         {
             try
             {
-                Process.Start(new ProcessStartInfo
-                {
-                    FileName = $"http://localhost:{_httpPort}/",
-                    UseShellExecute = true
-                });
+                string url = $"http://localhost:{_httpPort}/obs.html";
+                Clipboard.SetText(url);
+                MessageBox.Show(
+                    "URLをクリップボードにコピーしました",
+                    "コピー完了",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information
+                );
             }
             catch (Exception ex)
             {
-                WpfMessageBox.Show($"ブラウザの起動に失敗しました: {ex.Message}", "エラー",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
-        private void CopyObsUrl()
-        {
-            string url = $"http://localhost:{_httpPort}/obs.html";
-            WpfClipboard.SetText(url);
-            WpfMessageBox.Show($"OBS用URLをコピーしました:\n{url}", "コピー完了",
-                MessageBoxButton.OK, MessageBoxImage.Information);
-        }
-
-        private void SaveSettings()
-        {
-            _settings.Counters = _counterManager.GetAllCounters();
-            bool success = _configManager.Save(_settings);
-
-            if (success)
-            {
-                WpfMessageBox.Show("設定を保存しました。", "保存完了",
-                    MessageBoxButton.OK, MessageBoxImage.Information);
-            }
-            else
-            {
-                WpfMessageBox.Show("設定の保存に失敗しました。", "エラー",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
-        private void Exit()
-        {
-            System.Windows.Application.Current.Shutdown();
-        }
-
-        private void OnCounterChanged(object? sender, CounterChangeEventArgs e)
-        {
-            var counter = _counterManager.GetCounter(e.CounterId);
-            if (counter != null)
-            {
-                _notifyIcon.ShowBalloonTip(
-                    1000,
-                    "カウンター更新",
-                    $"{counter.Name}: {e.OldValue} → {e.NewValue}",
-                    WinForms.ToolTipIcon.Info
+                MessageBox.Show(
+                    $"クリップボードへのコピーに失敗しました: {ex.Message}",
+                    "エラー",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error
                 );
             }
         }
 
+        private void OnSaveSettings(object? sender, EventArgs e)
+        {
+            try
+            {
+                _settings.Counters = _counterManager.GetAllCounters();
+                _configManager.Save(_settings);
+
+                MessageBox.Show(
+                    "設定を保存しました",
+                    "保存完了",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information
+                );
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"設定の保存に失敗しました: {ex.Message}",
+                    "エラー",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error
+                );
+            }
+        }
+
+        private void OnExit(object? sender, EventArgs e)
+        {
+            _settings.Counters = _counterManager.GetAllCounters();
+            _configManager.Save(_settings);
+
+            WpfApp.Current.Shutdown();
+        }
+
         public void Dispose()
         {
-            _counterManager.CounterChanged -= OnCounterChanged;
-            _notifyIcon.Dispose();
-            _mainWindow?.Close();
+            _notifyIcon?.Dispose();
         }
     }
 }

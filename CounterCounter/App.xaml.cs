@@ -20,12 +20,13 @@ namespace CounterCounter
         private ConfigManager? _configManager;
         private System.Windows.Window? _hiddenWindow;
         private CounterSettings? _settings;
+        private MainWindow? _mainWindow;
+
+        public CounterSettings? Settings => _settings;
 
         protected override async void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
-
-            MainWindow = null;
 
             _configManager = new ConfigManager();
             _settings = _configManager.Load();
@@ -40,8 +41,24 @@ namespace CounterCounter
             _wsServer.Start();
 
             _trayIcon = new TrayIcon(_counterManager, _webServer.Port, _wsServer.Port, _configManager, _settings);
+            _trayIcon.ShowSettingsRequested += OnShowSettingsRequested;
+
+            _mainWindow = new MainWindow(_counterManager, _webServer.Port, _wsServer.Port);
+            _mainWindow.Show();
 
             InitializeHotkeys();
+        }
+
+        private void OnShowSettingsRequested(object? sender, EventArgs e)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                if (_mainWindow != null)
+                {
+                    _mainWindow.Show();
+                    _mainWindow.Activate();
+                }
+            });
         }
 
         private void InitializeHotkeys()

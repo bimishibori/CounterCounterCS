@@ -1,129 +1,147 @@
 ﻿// CounterCounter/Server/WebServer.cs
-using System;
 using System.Net;
-using System.Threading.Tasks;
+using System.Text;
 using CounterCounter.Core;
 
 namespace CounterCounter.Server
 {
     public class WebServer : IDisposable
     {
-        private HttpListener? _listener;
+        private readonly HttpListener _listener;
         private readonly CounterManager _counterManager;
         private readonly ApiHandler _apiHandler;
         private readonly HtmlContentProvider _htmlProvider;
         private readonly StaticFileProvider _staticFileProvider;
+        private bool _isRunning;
 
         public int Port { get; private set; }
 
         public WebServer(CounterManager counterManager)
         {
+            _listener = new HttpListener();
             _counterManager = counterManager;
-            _apiHandler = new ApiHandler(_counterManager);
+            _apiHandler = new ApiHandler(counterManager);
             _htmlProvider = new HtmlContentProvider();
             _staticFileProvider = new StaticFileProvider();
         }
 
-        public async Task StartAsync(int preferredPort = 8765)
+        public async Task StartAsync(int startPort = 8765)
         {
-            Port = preferredPort;
+            int port = startPort;
+            int maxAttempts = 10;
 
-            for (int attempt = 0; attempt < 10; attempt++)
+            for (int i = 0; i < maxAttempts; i++)
             {
                 try
                 {
-                    _listener = new HttpListener();
-                    _listener.Prefixes.Add($"http://localhost:{Port}/");
+                    _listener.Prefixes.Clear();
+                    _listener.Prefixes.Add($"http://localhost:{port}/");
                     _listener.Start();
-                    Console.WriteLine($"HTTP Server started on port {Port}");
-                    _ = Task.Run(HandleRequestsAsync);
+                    Port = port;
+                    _isRunning = true;
+                    Console.WriteLine($"HTTP Server started on port {port}");
+                    _ = Task.Run(ProcessRequestsAsync);
                     return;
                 }
                 catch (HttpListenerException)
                 {
-                    _listener?.Close();
-                    _listener = null;
-                    Port++;
+                    port++;
                 }
             }
 
-            throw new InvalidOperationException("Could not start HTTP server on any port.");
+            throw new Exception($"Failed to start HTTP server after {maxAttempts} attempts");
         }
 
-        private async Task HandleRequestsAsync()
+        private async Task ProcessRequestsAsync()
         {
-            while (_listener != null && _listener.IsListening)
+            while (_isRunning)
             {
                 try
                 {
                     var context = await _listener.GetContextAsync();
-                    _ = Task.Run(() => ProcessRequest(context));
+                    _ = Task.Run(() => HandleRequestAsync(context));
+                }
+                catch (HttpListenerException)
+                {
+                    break;
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error handling request: {ex.Message}");
+                    Console.WriteLine($"Error processing request: {ex.Message}");
                 }
             }
         }
 
-        private void ProcessRequest(HttpListenerContext context)
+        private async Task HandleRequestAsync(HttpListenerContext context)
         {
             try
             {
-                context.Response.Headers.Add("Access-Control-Allow-Origin", "*");
-                context.Response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-                context.Response.Headers.Add("Access-Control-Allow-Headers", "Content-Type");
+                string path = context.Request.Url?.AbsolutePath ?? "/";
+                string method = context.Request.HttpMethod;
 
-                if (context.Request.HttpMethod == "OPTIONS")
+                context.Response.AddHeader("Access-Control-Allow-Origin", "*");
+                context.Response.AddHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+                context.Response.AddHeader("Access-Control-Allow-Headers", "Content-Type");
+
+                if (method == "OPTIONS")
                 {
-                    context.Response.StatusCode = 200;
+                    context.Response.StatusCode = 204;
                     context.Response.Close();
                     return;
                 }
 
-                string path = context.Request.Url?.AbsolutePath ?? "/";
-
                 if (path.StartsWith("/api/"))
                 {
-                    _apiHandler.HandleRequest(context);
+                    await _apiHandler.HandleApiRequestAsync(context, path, method);
+                    return;
                 }
-                else if (path == "/" || path == "/index.html")
+
+                if (path == "/obs.html")
                 {
-                    ServeHtmlContent(context, _htmlProvider.GetManagerHtml(Port));
+                    string html = _htmlProvider.GenerateObsHtml(Port + 1);
+                    await SendHtmlResponse(context, html);
+                    return;
                 }
-                else if (path == "/obs.html")
-                {
-                    ServeHtmlContent(context, _htmlProvider.GetObsHtml(Port));
-                }
-                else if (path.StartsWith("/css/") || path.StartsWith("/js/"))
+
+                if (path.StartsWith("/css/") || path.StartsWith("/js/"))
                 {
                     _staticFileProvider.ServeFile(context, path);
+                    return;
                 }
-                else
-                {
-                    context.Response.StatusCode = 404;
-                    context.Response.Close();
-                }
+
+                context.Response.StatusCode = 404;
+                byte[] buffer = Encoding.UTF8.GetBytes("Not Found");
+                await context.Response.OutputStream.WriteAsync(buffer);
+                context.Response.Close();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error processing request: {ex.Message}");
-                context.Response.StatusCode = 500;
-                context.Response.Close();
+                Console.WriteLine($"Error handling request: {ex.Message}");
+                try
+                {
+                    context.Response.StatusCode = 500;
+                    byte[] buffer = Encoding.UTF8.GetBytes($"Internal Server Error: {ex.Message}");
+                    await context.Response.OutputStream.WriteAsync(buffer);
+                    context.Response.Close();
+                }
+                catch
+                {
+                }
             }
         }
 
-        private void ServeHtmlContent(HttpListenerContext context, string html)
+        private async Task SendHtmlResponse(HttpListenerContext context, string html)
         {
-            byte[] buffer = System.Text.Encoding.UTF8.GetBytes(html);
             context.Response.ContentType = "text/html; charset=utf-8";
+            byte[] buffer = Encoding.UTF8.GetBytes(html);
             context.Response.ContentLength64 = buffer.Length;
-            context.Response.OutputStream.Write(buffer, 0, buffer.Length);
-            context.Response.OutputStream.Close();
+            await context.Response.OutputStream.WriteAsync(buffer);
+            context.Response.Close();
         }
 
         public void Dispose()
         {
+            _isRunning = false;
             _listener?.Stop();
             _listener?.Close();
         }
