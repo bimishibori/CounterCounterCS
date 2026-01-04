@@ -1,6 +1,7 @@
 ﻿// CounterCounter/Server/StaticFileProvider.cs
 using System;
 using System.IO;
+using System.Net;
 using System.Reflection;
 
 namespace CounterCounter.Server
@@ -11,55 +12,52 @@ namespace CounterCounter.Server
 
         public StaticFileProvider()
         {
-            string? exeDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            _wwwrootPath = Path.Combine(exeDir ?? "", "wwwroot");
+            string exePath = Assembly.GetExecutingAssembly().Location;
+            string exeDir = Path.GetDirectoryName(exePath) ?? Environment.CurrentDirectory;
+            _wwwrootPath = Path.Combine(exeDir, "wwwroot");
         }
 
-        public string ReadFile(string relativePath)
+        public void ServeFile(HttpListenerContext context, string requestPath)
         {
             try
             {
-                string fullPath = Path.Combine(_wwwrootPath, relativePath.TrimStart('/'));
+                string filePath = Path.Combine(_wwwrootPath, requestPath.TrimStart('/'));
 
-                if (!File.Exists(fullPath))
+                if (!File.Exists(filePath))
                 {
-                    return string.Empty;
+                    context.Response.StatusCode = 404;
+                    context.Response.Close();
+                    return;
                 }
 
-                return File.ReadAllText(fullPath);
+                string contentType = GetContentType(filePath);
+                byte[] fileBytes = File.ReadAllBytes(filePath);
+
+                context.Response.ContentType = contentType;
+                context.Response.ContentLength64 = fileBytes.Length;
+                context.Response.OutputStream.Write(fileBytes, 0, fileBytes.Length);
+                context.Response.OutputStream.Close();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"ファイル読み込みエラー: {relativePath} - {ex.Message}");
-                return string.Empty;
+                Console.WriteLine($"Error serving file: {ex.Message}");
+                context.Response.StatusCode = 500;
+                context.Response.Close();
             }
         }
 
-        public bool FileExists(string relativePath)
+        private string GetContentType(string filePath)
         {
-            try
-            {
-                string fullPath = Path.Combine(_wwwrootPath, relativePath.TrimStart('/'));
-                return File.Exists(fullPath);
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        public string GetContentType(string path)
-        {
-            string extension = Path.GetExtension(path).ToLowerInvariant();
-
+            string extension = Path.GetExtension(filePath).ToLowerInvariant();
             return extension switch
             {
-                ".html" => "text/html",
-                ".css" => "text/css",
-                ".js" => "application/javascript",
-                ".json" => "application/json",
+                ".html" => "text/html; charset=utf-8",
+                ".css" => "text/css; charset=utf-8",
+                ".js" => "application/javascript; charset=utf-8",
+                ".json" => "application/json; charset=utf-8",
                 ".png" => "image/png",
-                ".jpg" or ".jpeg" => "image/jpeg",
+                ".jpg" => "image/jpeg",
+                ".jpeg" => "image/jpeg",
                 ".gif" => "image/gif",
                 ".svg" => "image/svg+xml",
                 ".ico" => "image/x-icon",

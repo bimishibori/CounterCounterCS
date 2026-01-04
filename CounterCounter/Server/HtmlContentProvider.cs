@@ -5,64 +5,44 @@ namespace CounterCounter.Server
 {
     public class HtmlContentProvider
     {
-        private readonly StaticFileProvider _fileProvider;
-
-        public HtmlContentProvider()
+        public string GetManagerHtml(int httpPort)
         {
-            _fileProvider = new StaticFileProvider();
-        }
-
-        public string GetIndexHtml()
-        {
-            string content = _fileProvider.ReadFile("index.html");
-
-            if (string.IsNullOrEmpty(content))
-            {
-                return GetFallbackIndexHtml();
-            }
-
-            return content;
-        }
-
-        public string GetObsHtml()
-        {
-            string content = _fileProvider.ReadFile("obs.html");
-
-            if (string.IsNullOrEmpty(content))
-            {
-                return GetFallbackObsHtml();
-            }
-
-            return content;
-        }
-
-        private string GetFallbackIndexHtml()
-        {
-            return @"<!DOCTYPE html>
-<html>
+            int wsPort = httpPort + 1;
+            return $@"<!DOCTYPE html>
+<html lang='ja'>
 <head>
-    <meta charset='utf-8'>
-    <title>カウンター・カウンター</title>
-    <style>body { background: #1a1a1a; color: #fff; text-align: center; padding: 50px; }</style>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>Counter Counter - 管理画面</title>
+    <link rel='stylesheet' href='/css/manager.css'>
 </head>
-<body>
-    <h1>カウンター・カウンター</h1>
-    <p>wwwrootフォルダが見つかりません</p>
+<body data-ws-port='{wsPort}'>
+    <div class='container'>
+        <header>
+            <h1>Counter Counter</h1>
+            <div id='connection-status' class='status disconnected'>切断</div>
+        </header>
+        <div id='counters-container'></div>
+    </div>
+    <script src='/js/manager.js'></script>
 </body>
 </html>";
         }
 
-        private string GetFallbackObsHtml()
+        public string GetObsHtml(int httpPort)
         {
-            return @"<!DOCTYPE html>
-<html>
+            int wsPort = httpPort + 1;
+            return $@"<!DOCTYPE html>
+<html lang='ja'>
 <head>
-    <meta charset='utf-8'>
-    <title>カウンター表示</title>
-    <style>body { background: transparent; display: flex; justify-content: center; align-items: center; height: 100vh; } .counter { font-size: 120px; color: #fff; }</style>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>Counter Display</title>
+    <link rel='stylesheet' href='/css/obs.css'>
 </head>
-<body>
-    <div class='counter'>0</div>
+<body data-ws-port='{wsPort}'>
+    <div id='counter-display'></div>
+    <script src='/js/obs.js'></script>
 </body>
 </html>";
         }

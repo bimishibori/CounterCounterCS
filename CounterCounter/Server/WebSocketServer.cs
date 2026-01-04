@@ -1,95 +1,92 @@
 ﻿// CounterCounter/Server/WebSocketServer.cs
 using System;
 using System.Text.Json;
-using CounterCounter.Core;
 using WebSocketSharp;
 using WebSocketSharp.Server;
+using CounterCounter.Core;
 
 namespace CounterCounter.Server
 {
-    public class WebSocketServer : IDisposable
-    {
-        private WebSocketSharp.Server.WebSocketServer? _server;
-        private readonly CounterState _counterState;
-        private int _wsPort;
-
-        public int Port => _wsPort;
-
-        public WebSocketServer(CounterState counterState, int httpPort)
-        {
-            _counterState = counterState;
-            _wsPort = httpPort + 1;
-        }
-
-        public void Start()
-        {
-            _server = new WebSocketSharp.Server.WebSocketServer(_wsPort);
-            _server.AddWebSocketService("/ws", () =>
-                new CounterWebSocketService(_counterState));
-            _server.Start();
-
-            _counterState.ValueChanged += OnCounterChanged;
-        }
-
-        private void OnCounterChanged(object? sender, CounterChangedEventArgs e)
-        {
-            _server?.WebSocketServices["/ws"]?.Sessions?.Broadcast(
-                JsonSerializer.Serialize(new
-                {
-                    type = "counter_update",
-                    value = e.NewValue,
-                    changeType = e.ChangeType.ToString().ToLower()
-                })
-            );
-        }
-
-        public void Stop()
-        {
-            _counterState.ValueChanged -= OnCounterChanged;
-            _server?.Stop();
-        }
-
-        public void Dispose()
-        {
-            Stop();
-            _server = null;
-        }
-    }
-
     public class CounterWebSocketService : WebSocketBehavior
     {
-        private readonly CounterState _counterState;
+        private readonly CounterManager _counterManager;
 
-        public CounterWebSocketService(CounterState counterState)
+        public CounterWebSocketService(CounterManager counterManager)
         {
-            _counterState = counterState;
+            _counterManager = counterManager;
         }
 
         protected override void OnOpen()
         {
-            Console.WriteLine("WebSocket接続: " + ID);
-
-            Send(JsonSerializer.Serialize(new
+            var counters = _counterManager.GetAllCounters();
+            var message = JsonSerializer.Serialize(new
             {
-                type = "counter_update",
-                value = _counterState.GetValue(),
-                changeType = "init"
-            }));
-        }
-
-        protected override void OnClose(CloseEventArgs e)
-        {
-            Console.WriteLine("WebSocket切断: " + ID);
+                type = "init",
+                counters
+            });
+            Send(message);
         }
 
         protected override void OnMessage(MessageEventArgs e)
         {
-            Console.WriteLine("WebSocketメッセージ受信: " + e.Data);
+            Console.WriteLine($"Received: {e.Data}");
         }
 
-        protected override void OnError(ErrorEventArgs e)
+        protected override void OnClose(CloseEventArgs e)
         {
-            Console.WriteLine("WebSocketエラー: " + e.Message);
+            Console.WriteLine("WebSocket connection closed.");
+        }
+    }
+
+    public class WebSocketServer : IDisposable
+    {
+        private readonly WebSocketSharp.Server.WebSocketServer _server;
+        private readonly CounterManager _counterManager;
+
+        public int Port { get; }
+
+        public WebSocketServer(CounterManager counterManager, int httpPort)
+        {
+            _counterManager = counterManager;
+            Port = httpPort + 1;
+
+            _server = new WebSocketSharp.Server.WebSocketServer($"ws://localhost:{Port}");
+
+#pragma warning disable CS0618
+            _server.AddWebSocketService<CounterWebSocketService>("/ws", () => new CounterWebSocketService(_counterManager));
+#pragma warning restore CS0618
+
+            _counterManager.CounterChanged += OnCounterChanged;
+        }
+
+        public void Start()
+        {
+            _server.Start();
+            Console.WriteLine($"WebSocket Server started on port {Port}");
+        }
+
+        private void OnCounterChanged(object? sender, CounterChangeEventArgs e)
+        {
+            var counter = _counterManager.GetCounter(e.CounterId);
+            if (counter == null) return;
+
+            var message = JsonSerializer.Serialize(new
+            {
+                type = "counter_update",
+                counterId = e.CounterId,
+                value = e.NewValue,
+                oldValue = e.OldValue,
+                changeType = e.ChangeType.ToString().ToLower(),
+                counter
+            });
+
+            _server.WebSocketServices["/ws"].Sessions.Broadcast(message);
+        }
+
+        public void Dispose()
+        {
+            _counterManager.CounterChanged -= OnCounterChanged;
+            _server?.Stop();
         }
     }
 }

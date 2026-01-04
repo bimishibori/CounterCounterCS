@@ -1,22 +1,72 @@
 ﻿/* CounterCounter/wwwroot/css/obs.css */
-body {
+* {
     margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
     background: transparent;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+    color: #ffffff;
     overflow: hidden;
 }
 
-.counter {
-    font-size: 120px;
-    font-weight: bold;
-    color: #fff;
-    text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.8);
-    transition: transform 0.3s ease;
+#counter-display {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
 }
 
-    .counter.flash {
-        transform: scale(1.2);
+.counter-item {
+    text-align: center;
+    margin: 20px 0;
+    opacity: 0;
+    animation: fadeIn 0.5s forwards;
+}
+
+.counter-name {
+    font-size: 2em;
+    font-weight: bold;
+    margin-bottom: 10px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.counter-value {
+    font-size: 8em;
+    font-weight: bold;
+    font-family: 'Courier New', monospace;
+    text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.8);
+    transition: transform 0.3s, opacity 0.3s;
+}
+
+    .counter-value.flash {
+        animation: flash 0.3s;
     }
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes flash {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: scale(1.2);
+        opacity: 0.7;
+    }
+}

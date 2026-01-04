@@ -1,8 +1,6 @@
 ﻿// CounterCounter/Server/WebServer.cs
 using System;
 using System.Net;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using CounterCounter.Core;
 
@@ -11,219 +9,123 @@ namespace CounterCounter.Server
     public class WebServer : IDisposable
     {
         private HttpListener? _listener;
-        private CancellationTokenSource? _cts;
-        private readonly CounterState _counterState;
+        private readonly CounterManager _counterManager;
         private readonly ApiHandler _apiHandler;
         private readonly HtmlContentProvider _htmlProvider;
         private readonly StaticFileProvider _staticFileProvider;
-        private int _port = 8765;
-        private int _wsPort = 8766;
 
-        public int Port => _port;
-        public int WebSocketPort
+        public int Port { get; private set; }
+
+        public WebServer(CounterManager counterManager)
         {
-            get => _wsPort;
-            set => _wsPort = value;
-        }
-
-        public bool IsRunning { get; private set; }
-
-        public WebServer(CounterState counterState)
-        {
-            _counterState = counterState;
-            _apiHandler = new ApiHandler(counterState);
+            _counterManager = counterManager;
+            _apiHandler = new ApiHandler(_counterManager);
             _htmlProvider = new HtmlContentProvider();
             _staticFileProvider = new StaticFileProvider();
         }
 
-        public async Task StartAsync()
+        public async Task StartAsync(int preferredPort = 8765)
         {
-            for (int port = 8765; port < 8775; port++)
+            Port = preferredPort;
+
+            for (int attempt = 0; attempt < 10; attempt++)
             {
                 try
                 {
-                    _port = port;
-                    _wsPort = port + 1;
                     _listener = new HttpListener();
-                    _listener.Prefixes.Add($"http://localhost:{_port}/");
+                    _listener.Prefixes.Add($"http://localhost:{Port}/");
                     _listener.Start();
-                    IsRunning = true;
-                    break;
+                    Console.WriteLine($"HTTP Server started on port {Port}");
+                    _ = Task.Run(HandleRequestsAsync);
+                    return;
                 }
                 catch (HttpListenerException)
                 {
                     _listener?.Close();
                     _listener = null;
-                    continue;
+                    Port++;
                 }
             }
 
-            if (_listener == null)
-            {
-                throw new Exception("利用可能なポートが見つかりませんでした");
-            }
-
-            _cts = new CancellationTokenSource();
-            _ = Task.Run(async () => await ProcessRequestsAsync(_cts.Token));
+            throw new InvalidOperationException("Could not start HTTP server on any port.");
         }
 
-        private async Task ProcessRequestsAsync(CancellationToken cancellationToken)
+        private async Task HandleRequestsAsync()
         {
-            while (!cancellationToken.IsCancellationRequested && _listener != null)
+            while (_listener != null && _listener.IsListening)
             {
                 try
                 {
                     var context = await _listener.GetContextAsync();
-                    _ = Task.Run(() => HandleRequest(context), cancellationToken);
+                    _ = Task.Run(() => ProcessRequest(context));
                 }
-                catch (Exception ex) when (ex is HttpListenerException || ex is ObjectDisposedException)
+                catch (Exception ex)
                 {
-                    break;
+                    Console.WriteLine($"Error handling request: {ex.Message}");
                 }
             }
         }
 
-        private void HandleRequest(HttpListenerContext context)
+        private void ProcessRequest(HttpListenerContext context)
         {
             try
             {
-                var request = context.Request;
-                var response = context.Response;
+                context.Response.Headers.Add("Access-Control-Allow-Origin", "*");
+                context.Response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+                context.Response.Headers.Add("Access-Control-Allow-Headers", "Content-Type");
 
-                SetCorsHeaders(response);
-
-                if (request.HttpMethod == "OPTIONS")
+                if (context.Request.HttpMethod == "OPTIONS")
                 {
-                    response.StatusCode = 200;
-                    response.Close();
+                    context.Response.StatusCode = 200;
+                    context.Response.Close();
                     return;
                 }
 
-                string path = request.Url?.AbsolutePath ?? "/";
-                RouteRequest(path, request.HttpMethod, response);
+                string path = context.Request.Url?.AbsolutePath ?? "/";
+
+                if (path.StartsWith("/api/"))
+                {
+                    _apiHandler.HandleRequest(context);
+                }
+                else if (path == "/" || path == "/index.html")
+                {
+                    ServeHtmlContent(context, _htmlProvider.GetManagerHtml(Port));
+                }
+                else if (path == "/obs.html")
+                {
+                    ServeHtmlContent(context, _htmlProvider.GetObsHtml(Port));
+                }
+                else if (path.StartsWith("/css/") || path.StartsWith("/js/"))
+                {
+                    _staticFileProvider.ServeFile(context, path);
+                }
+                else
+                {
+                    context.Response.StatusCode = 404;
+                    context.Response.Close();
+                }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error handling request: {ex.Message}");
-                try
-                {
-                    context.Response.StatusCode = 500;
-                    context.Response.Close();
-                }
-                catch { }
+                Console.WriteLine($"Error processing request: {ex.Message}");
+                context.Response.StatusCode = 500;
+                context.Response.Close();
             }
         }
 
-        private void SetCorsHeaders(HttpListenerResponse response)
+        private void ServeHtmlContent(HttpListenerContext context, string html)
         {
-            response.Headers.Add("Access-Control-Allow-Origin", "*");
-            response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-            response.Headers.Add("Access-Control-Allow-Headers", "Content-Type");
-        }
-
-        private void RouteRequest(string path, string method, HttpListenerResponse response)
-        {
-            if (path.StartsWith("/api/"))
-            {
-                HandleApiRequest(path, method, response);
-                return;
-            }
-
-            if (path.StartsWith("/css/") || path.StartsWith("/js/"))
-            {
-                ServeStaticFile(response, path);
-                return;
-            }
-
-            switch (path)
-            {
-                case "/":
-                    ServeHtml(response, _htmlProvider.GetIndexHtml());
-                    break;
-                case "/obs.html":
-                    ServeHtml(response, _htmlProvider.GetObsHtml());
-                    break;
-                default:
-                    response.StatusCode = 404;
-                    SendJson(response, new { error = "Not Found" });
-                    break;
-            }
-        }
-
-        private void HandleApiRequest(string path, string method, HttpListenerResponse response)
-        {
-            switch (path)
-            {
-                case "/api/counter" when method == "GET":
-                    _apiHandler.HandleGetCounter(response);
-                    break;
-                case "/api/counter/increment" when method == "POST":
-                    _apiHandler.HandleIncrement(response);
-                    break;
-                case "/api/counter/decrement" when method == "POST":
-                    _apiHandler.HandleDecrement(response);
-                    break;
-                case "/api/counter/reset" when method == "POST":
-                    _apiHandler.HandleReset(response);
-                    break;
-                default:
-                    response.StatusCode = 404;
-                    SendJson(response, new { error = "API Not Found" });
-                    break;
-            }
-        }
-
-        private void ServeStaticFile(HttpListenerResponse response, string path)
-        {
-            string content = _staticFileProvider.ReadFile(path);
-
-            if (string.IsNullOrEmpty(content))
-            {
-                response.StatusCode = 404;
-                SendJson(response, new { error = "File Not Found" });
-                return;
-            }
-
-            string contentType = _staticFileProvider.GetContentType(path);
-            response.ContentType = $"{contentType}; charset=utf-8";
-            byte[] buffer = Encoding.UTF8.GetBytes(content);
-            response.ContentLength64 = buffer.Length;
-            response.OutputStream.Write(buffer, 0, buffer.Length);
-            response.Close();
-        }
-
-        private void ServeHtml(HttpListenerResponse response, string content)
-        {
-            response.ContentType = "text/html; charset=utf-8";
-            byte[] buffer = Encoding.UTF8.GetBytes(content);
-            response.ContentLength64 = buffer.Length;
-            response.OutputStream.Write(buffer, 0, buffer.Length);
-            response.Close();
-        }
-
-        private void SendJson(HttpListenerResponse response, object data)
-        {
-            response.ContentType = "application/json";
-            string json = System.Text.Json.JsonSerializer.Serialize(data);
-            byte[] buffer = Encoding.UTF8.GetBytes(json);
-            response.ContentLength64 = buffer.Length;
-            response.OutputStream.Write(buffer, 0, buffer.Length);
-            response.Close();
-        }
-
-        public void Stop()
-        {
-            IsRunning = false;
-            _cts?.Cancel();
-            _listener?.Stop();
-            _listener?.Close();
+            byte[] buffer = System.Text.Encoding.UTF8.GetBytes(html);
+            context.Response.ContentType = "text/html; charset=utf-8";
+            context.Response.ContentLength64 = buffer.Length;
+            context.Response.OutputStream.Write(buffer, 0, buffer.Length);
+            context.Response.OutputStream.Close();
         }
 
         public void Dispose()
         {
-            Stop();
-            _cts?.Dispose();
-            _listener = null;
+            _listener?.Stop();
+            _listener?.Close();
         }
     }
 }

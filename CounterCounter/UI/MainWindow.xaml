@@ -2,208 +2,145 @@
 <Window x:Class="CounterCounter.UI.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d"
-        Title="カウンター・カウンター 設定"
-        Height="500" Width="600"
-        Background="#1e1e1e"
+        Title="Counter Counter - 設定"
+        Width="700"
+        Height="600"
         WindowStartupLocation="CenterScreen"
-        ShowInTaskbar="False"
-        Closing="Window_Closing">
+        Background="#1e1e1e">
 
     <Window.Resources>
         <Style TargetType="Button">
-            <Setter Property="Background" Value="#4CAF50"/>
-            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="#2d2d30"/>
+            <Setter Property="Foreground" Value="#ffffff"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Padding" Value="15,8"/>
             <Setter Property="Margin" Value="5"/>
-            <Setter Property="FontSize" Value="14"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}"
-                                CornerRadius="5"
+                        <Border Background="{TemplateBinding Background}" 
+                                CornerRadius="4"
                                 Padding="{TemplateBinding Padding}">
-                            <ContentPresenter HorizontalAlignment="Center"
-                                            VerticalAlignment="Center"/>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#45a049"/>
+                    <Setter Property="Background" Value="#3e3e42"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
 
-        <Style x:Key="ResetButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-            <Setter Property="Background" Value="#f44336"/>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#da190b"/>
-                </Trigger>
-            </Style.Triggers>
+        <Style TargetType="TextBox">
+            <Setter Property="Background" Value="#2d2d30"/>
+            <Setter Property="Foreground" Value="#ffffff"/>
+            <Setter Property="BorderBrush" Value="#3f3f46"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="Margin" Value="5"/>
+        </Style>
+
+        <Style TargetType="ListBox">
+            <Setter Property="Background" Value="#252526"/>
+            <Setter Property="Foreground" Value="#ffffff"/>
+            <Setter Property="BorderBrush" Value="#3f3f46"/>
+            <Setter Property="BorderThickness" Value="1"/>
         </Style>
 
         <Style TargetType="TextBlock">
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Foreground" Value="#ffffff"/>
+            <Setter Property="Margin" Value="5"/>
         </Style>
 
-        <Style TargetType="Label">
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontSize" Value="14"/>
+        <Style TargetType="TabControl">
+            <Setter Property="Background" Value="#1e1e1e"/>
         </Style>
     </Window.Resources>
 
-    <TabControl Background="#2d2d2d" BorderThickness="0">
-        <TabControl.Resources>
-            <Style TargetType="TabItem">
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="TabItem">
-                            <Border Name="Border" Background="#2d2d2d" 
-                                    BorderThickness="0" Padding="15,10"
-                                    Margin="0,0,2,0">
-                                <ContentPresenter ContentSource="Header"
-                                                VerticalAlignment="Center"
-                                                HorizontalAlignment="Center"/>
-                            </Border>
-                            <ControlTemplate.Triggers>
-                                <Trigger Property="IsSelected" Value="True">
-                                    <Setter TargetName="Border" Property="Background" Value="#1e1e1e"/>
-                                </Trigger>
-                                <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter TargetName="Border" Property="Background" Value="#3d3d3d"/>
-                                </Trigger>
-                            </ControlTemplate.Triggers>
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-                <Setter Property="Foreground" Value="White"/>
-                <Setter Property="FontSize" Value="14"/>
-            </Style>
-        </TabControl.Resources>
-
-        <TabItem Header="カウンター操作">
-            <Grid Margin="20">
+    <TabControl>
+        <TabItem Header="カウンター管理">
+            <Grid Margin="10">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <TextBlock Grid.Row="0" Text="現在のカウンター値"
-                          FontSize="16" Margin="0,0,0,10"/>
-
-                <Border Grid.Row="1" Background="#2d2d2d" 
-                        CornerRadius="10" Padding="20"
-                        VerticalAlignment="Center">
-                    <StackPanel>
-                        <TextBlock x:Name="CounterValueText"
-                                  Text="0"
-                                  FontSize="72"
-                                  FontWeight="Bold"
-                                  HorizontalAlignment="Center"
-                                  Margin="0,20"/>
-
-                        <StackPanel Orientation="Horizontal"
-                                   HorizontalAlignment="Center"
-                                   Margin="0,20,0,0">
-                            <Button Content="＋" 
-                                   Click="IncrementButton_Click"
-                                   Width="80" Height="50"
-                                   FontSize="24"/>
-                            <Button Content="－" 
-                                   Click="DecrementButton_Click"
-                                   Width="80" Height="50"
-                                   FontSize="24"/>
-                            <Button Content="リセット" 
-                                   Click="ResetButton_Click"
-                                   Style="{StaticResource ResetButton}"
-                                   Width="100" Height="50"/>
-                        </StackPanel>
-                    </StackPanel>
-                </Border>
-
-                <StackPanel Grid.Row="2" Margin="0,20,0,0">
-                    <TextBlock Text="ホットキー（未実装）" 
-                              FontSize="12" Opacity="0.7"/>
-                    <TextBlock Text="Ctrl+Shift+↑ : 増加 / Ctrl+Shift+↓ : 減少 / Ctrl+Shift+R : リセット"
-                              FontSize="11" Opacity="0.5"/>
+                <StackPanel Grid.Row="0" Orientation="Horizontal">
+                    <Button Content="新規カウンター追加" Click="AddCounter_Click"/>
                 </StackPanel>
+
+                <ListBox Grid.Row="1" x:Name="CounterListBox" Margin="0,10" SelectionChanged="CounterListBox_SelectionChanged">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Margin="5">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="{Binding Name}" FontSize="16" FontWeight="Bold"/>
+                                    <TextBlock Text="{Binding Value, StringFormat='値: {0}'}" FontSize="12" Opacity="0.7"/>
+                                </StackPanel>
+
+                                <Border Grid.Column="1" Width="30" Height="30" 
+                                        Background="{Binding Color}" 
+                                        CornerRadius="15" 
+                                        Margin="10,0"/>
+
+                                <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                    <Button Content="編集" Tag="{Binding Id}" Click="EditCounter_Click" Width="60"/>
+                                    <Button Content="削除" Tag="{Binding Id}" Click="DeleteCounter_Click" Width="60"/>
+                                </StackPanel>
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+                <StackPanel Grid.Row="2">
+                    <TextBlock Text="選択中のカウンター操作" FontSize="14" FontWeight="Bold" Margin="0,10,0,5"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                        <Button Content="+" Click="IncrementSelected_Click" Width="80" FontSize="20"/>
+                        <Button Content="-" Click="DecrementSelected_Click" Width="80" FontSize="20"/>
+                        <Button Content="リセット" Click="ResetSelected_Click" Width="100"/>
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+        </TabItem>
+
+        <TabItem Header="ホットキー設定">
+            <Grid Margin="10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Text="カウンター毎のホットキー設定" FontSize="14" FontWeight="Bold" Margin="0,0,0,10"/>
+
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <StackPanel x:Name="HotkeyPanel"/>
+                </ScrollViewer>
             </Grid>
         </TabItem>
 
         <TabItem Header="接続情報">
-            <Grid Margin="20">
-                <StackPanel>
-                    <TextBlock Text="OBS用URL" FontSize="16" Margin="0,0,0,10"/>
+            <StackPanel Margin="20" VerticalAlignment="Center">
+                <TextBlock Text="OBS用URL" FontSize="16" FontWeight="Bold" Margin="0,0,0,10"/>
+                <TextBox x:Name="ObsUrlTextBox" IsReadOnly="True" FontSize="14"/>
+                <Button Content="URLをコピー" Click="CopyObsUrl_Click" Width="150" HorizontalAlignment="Left"/>
 
-                    <Border Background="#2d2d2d" CornerRadius="5" Padding="15" Margin="0,0,0,10">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
+                <TextBlock Text="管理ページURL" FontSize="16" FontWeight="Bold" Margin="0,20,0,10"/>
+                <TextBox x:Name="ManagerUrlTextBox" IsReadOnly="True" FontSize="14"/>
+                <Button Content="ブラウザで開く" Click="OpenManager_Click" Width="150" HorizontalAlignment="Left"/>
 
-                            <TextBox x:Name="ObsUrlTextBox"
-                                    Grid.Column="0"
-                                    Background="Transparent"
-                                    Foreground="White"
-                                    BorderThickness="0"
-                                    IsReadOnly="True"
-                                    VerticalAlignment="Center"
-                                    FontSize="14"/>
-
-                            <Button Grid.Column="1"
-                                   Content="コピー"
-                                   Click="CopyUrlButton_Click"
-                                   Width="80"/>
-                        </Grid>
-                    </Border>
-
-                    <TextBlock Text="サーバー情報" FontSize="16" Margin="0,20,0,10"/>
-
-                    <Border Background="#2d2d2d" CornerRadius="5" Padding="15">
-                        <StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="0,5">
-                                <TextBlock Text="HTTPポート: " Width="120"/>
-                                <TextBlock x:Name="HttpPortText" Text="8765" FontWeight="Bold"/>
-                            </StackPanel>
-
-                            <StackPanel Orientation="Horizontal" Margin="0,5">
-                                <TextBlock Text="WebSocketポート: " Width="120"/>
-                                <TextBlock x:Name="WsPortText" Text="8766" FontWeight="Bold"/>
-                            </StackPanel>
-
-                            <StackPanel Orientation="Horizontal" Margin="0,5">
-                                <TextBlock Text="状態: " Width="120"/>
-                                <TextBlock x:Name="ServerStatusText" Text="稼働中" 
-                                         Foreground="#4CAF50" FontWeight="Bold"/>
-                            </StackPanel>
-                        </StackPanel>
-                    </Border>
-
-                    <Button Content="管理ページをブラウザで開く"
-                           Click="OpenManagerButton_Click"
-                           Margin="0,20,0,0"
-                           HorizontalAlignment="Left"/>
-                </StackPanel>
-            </Grid>
-        </TabItem>
-
-        <TabItem Header="設定" IsEnabled="False">
-            <Grid Margin="20">
-                <TextBlock Text="今後実装予定" 
-                          VerticalAlignment="Center"
-                          HorizontalAlignment="Center"
-                          FontSize="18" Opacity="0.5"/>
-            </Grid>
+                <TextBlock Text="サーバー情報" FontSize="16" FontWeight="Bold" Margin="0,20,0,10"/>
+                <TextBlock x:Name="ServerInfoTextBox" TextWrapping="Wrap"/>
+            </StackPanel>
         </TabItem>
     </TabControl>
 </Window>

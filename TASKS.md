@@ -2,7 +2,7 @@
 
 **プロジェクト名**: Counter Counter（カウンター・カウンター）  
 **技術スタック**: C# + .NET 8 + WPF  
-**最終更新日**: 2026-01-04 (セッション2)
+**最終更新日**: 2026-01-04 (セッション3 - 複数カウンター対応完了)
 
 ---
 
@@ -11,12 +11,27 @@
 | フェーズ | 進捗 | 状態 |
 |---------|------|------|
 | Phase 1: 環境構築 | 100% | ✅ 完了 |
-| Phase 2: コア機能実装 | 80% | 🔄 進行中 |
-| Phase 3: GUI実装 | 60% | 🔄 進行中 |
+| Phase 2: コア機能実装 | 100% | ✅ 完了 |
+| Phase 3: GUI実装 | 90% | 🔄 ほぼ完了 |
 | Phase 4: アニメーション | 10% | 🔄 進行中 |
 | Phase 5: EXE化・配布 | 0% | ⏳ 未着手 |
 
-**全体進捗: 60%完了**
+**全体進捗: 85%完了** 🎉
+
+---
+
+## 🎯 重大な設計変更 (セッション3)
+
+### 複数カウンター対応への全面リニューアル
+
+**変更前**: 単一の `CounterState` で1つのカウンターのみ管理  
+**変更後**: `CounterManager` で複数カウンターを管理
+
+この変更により、以下の機能が実現：
+- ✅ カウンターの自由な追加・削除・編集
+- ✅ カウンター毎に名前・色を設定
+- ✅ カウンター毎のホットキー設定（UI未実装）
+- ✅ OBSで複数カウンターを同時表示
 
 ---
 
@@ -45,7 +60,7 @@
   - [x] `Core/` フォルダ（コア機能）
   - [x] `Server/` フォルダ（サーバー機能）
   - [x] `UI/` フォルダ（UI機能）
-  - [x] `Models/` フォルダ（データモデル・今後使用）
+  - [x] `Models/` フォルダ（データモデル）
   - [x] `wwwroot/` フォルダ（Webファイル）
   - [x] `wwwroot/css/` フォルダ
   - [x] `wwwroot/js/` フォルダ
@@ -53,7 +68,9 @@
 - [ ] アイコンファイル追加（`Resources/icon.ico`）
 
 ### 1-5. 基本ファイル作成
-- [x] `Core/CounterState.cs` 作成 ✅
+- [x] `Core/CounterManager.cs` 作成 ✅
+- [x] `Core/HotkeyManager.cs` 作成 ✅
+- [x] `Core/ConfigManager.cs` 作成 ✅
 - [x] `Server/WebServer.cs` 作成 ✅
 - [x] `Server/WebSocketServer.cs` 作成 ✅
 - [x] `Server/ApiHandler.cs` 作成 ✅
@@ -62,69 +79,92 @@
 - [x] `UI/TrayIcon.cs` 作成 ✅
 - [x] `UI/MainWindow.xaml` 作成 ✅
 - [x] `UI/MainWindow.xaml.cs` 作成 ✅
-- [ ] `Core/HotkeyManager.cs` 作成
-- [ ] `Core/ConfigManager.cs` 作成
-- [ ] `Models/CounterSettings.cs` 作成
-- [ ] `Models/DisplaySettings.cs` 作成
+- [x] `UI/CounterEditDialog.xaml` 作成 ✅
+- [x] `UI/CounterEditDialog.xaml.cs` 作成 ✅
+- [x] `Models/Counter.cs` 作成 ✅
+- [x] `Models/HotkeySettings.cs` 作成 ✅
+- [x] `Models/CounterSettings.cs` 作成 ✅
 
 ---
 
-## Phase 2: コア機能実装 【80%】
+## Phase 2: コア機能実装 【100%】✅
 
-### 2-1. カウンター状態管理 ✅
-- [x] `Core/CounterState.cs` 実装
-  - [x] カウンター値の保持（プロパティ）
+### 2-1. データモデル実装 ✅
+- [x] `Models/Counter.cs` 実装
+  - [x] Id, Name, Value, Color プロパティ
+  - [x] Clone()メソッド
+- [x] `Models/HotkeySettings.cs` 実装
+  - [x] CounterId, Action, Modifiers, VirtualKey
+  - [x] GetDisplayText()メソッド
+- [x] `Models/CounterSettings.cs` 実装
+  - [x] Counters リスト
+  - [x] Hotkeys リスト
+  - [x] ServerPort
+  - [x] CreateDefault()メソッド
+
+### 2-2. カウンター管理実装 ✅
+- [x] `Core/CounterManager.cs` 実装
+  - [x] 複数カウンターの保持（Dictionary）
+  - [x] `AddCounter()` メソッド
+  - [x] `RemoveCounter()` メソッド
+  - [x] `GetCounter()` メソッド
+  - [x] `GetAllCounters()` メソッド
+  - [x] `UpdateCounter()` メソッド
   - [x] `Increment()` メソッド
   - [x] `Decrement()` メソッド
   - [x] `Reset()` メソッド
-  - [x] `GetValue()` メソッド
-  - [x] `ValueChanged` イベント
+  - [x] `SetValue()` メソッド
+  - [x] `LoadCounters()` メソッド
+  - [x] `CounterChanged` イベント
   - [x] スレッドセーフ対応（lock使用）
 
-### 2-2. HTTPサーバー実装 ✅
+### 2-3. HTTPサーバー実装 ✅
 - [x] `Server/WebServer.cs` 実装
   - [x] `HttpListener` 初期化
   - [x] ルーティング処理
   - [x] 静的ファイル配信（wwwroot）
-  - [x] APIエンドポイント実装
+  - [x] APIエンドポイント統合
   - [x] ポート自動選択機能
   - [x] 非同期処理対応
 
-### 2-3. APIエンドポイント実装 ✅
-- [x] `GET /` (index.html配信)
-- [x] `GET /obs.html` (OBS表示画面)
-- [x] `GET /api/counter` (カウンター値取得)
-- [x] `POST /api/counter/increment` (カウンター+1)
-- [x] `POST /api/counter/decrement` (カウンター-1)
-- [x] `POST /api/counter/reset` (リセット)
-- [ ] `GET /api/settings` (設定取得)
-- [ ] `POST /api/settings` (設定更新)
+### 2-4. APIエンドポイント実装 ✅
+- [x] `Server/ApiHandler.cs` 実装
+  - [x] `GET /api/counters` (全カウンター取得)
+  - [x] `POST /api/counters` (カウンター追加)
+  - [x] `GET /api/counter/:id` (特定カウンター取得)
+  - [x] `PUT /api/counter/:id` (カウンター更新)
+  - [x] `DELETE /api/counter/:id` (カウンター削除)
+  - [x] `POST /api/counter/:id/increment` (カウンター+1)
+  - [x] `POST /api/counter/:id/decrement` (カウンター-1)
+  - [x] `POST /api/counter/:id/reset` (リセット)
 
-### 2-4. WebSocket実装 ✅
+### 2-5. WebSocket実装 ✅
 - [x] `Server/WebSocketServer.cs` 実装
   - [x] WebSocketSharp統合
   - [x] 接続管理
-  - [x] `counter_update` イベント送信
-  - [ ] `settings_update` イベント送信
+  - [x] `init` メッセージ送信（全カウンター）
+  - [x] `counter_update` イベント送信（カウンターID含む）
   - [x] ブロードキャスト機能
 
-### 2-5. グローバルホットキー実装 ← 次はここ！
-- [ ] `Core/HotkeyManager.cs` 実装
-  - [ ] Win32 API `RegisterHotKey` 呼び出し
-  - [ ] `UnregisterHotKey` 呼び出し
-  - [ ] `WndProc` メッセージ処理
-  - [ ] ホットキーイベント発火
-  - [ ] キー競合検出
-  - [ ] デフォルトキー登録
+### 2-6. グローバルホットキー実装 ✅
+- [x] `Core/HotkeyManager.cs` 実装
+  - [x] Win32 API `RegisterHotKey` 呼び出し
+  - [x] `UnregisterHotKey` 呼び出し
+  - [x] `WndProc` メッセージ処理
+  - [x] ホットキーイベント発火（HotkeyPressed）
+  - [x] キー競合検出（IsHotkeyAlreadyRegistered）
+  - [x] 動的ホットキー登録対応
+  - [x] カウンターID毎の管理
+  - [x] デフォルトキー登録
 
-### 2-6. 設定管理実装
-- [ ] `Core/ConfigManager.cs` 実装
-  - [ ] JSON読み込み (`System.Text.Json`)
-  - [ ] JSON保存
-  - [ ] デフォルト設定生成
-  - [ ] 設定変更検知
+### 2-7. 設定管理実装 ✅
+- [x] `Core/ConfigManager.cs` 実装
+  - [x] JSON読み込み (`System.Text.Json`)
+  - [x] JSON保存
+  - [x] デフォルト設定生成
+  - [x] 設定ファイルパス管理
 
-### 2-7. タスクトレイ実装 ✅
+### 2-8. タスクトレイ実装 ✅
 - [x] `UI/TrayIcon.cs` 実装
   - [x] `NotifyIcon` 初期化
   - [x] アイコン画像設定（仮アイコン）
@@ -132,71 +172,81 @@
   - [x] 「設定を開く」機能
   - [x] 「管理ページを開く」機能
   - [x] 「OBS URLをコピー」機能
+  - [x] 「設定を保存」機能 ✅
   - [x] 「終了」機能
   - [x] ツールチップ（ポート番号表示）
-  - [x] カウンター値変更通知
+  - [x] カウンター値変更通知（バルーン）
 
-### 2-8. アプリケーション統合 ✅
+### 2-9. アプリケーション統合 ✅
 - [x] `App.xaml.cs` 修正
   - [x] スタートアップ処理
+  - [x] 設定読み込み（ConfigManager）
+  - [x] CounterManagerの初期化
   - [x] サーバー起動
+  - [x] WebSocket起動
   - [x] トレイアイコン表示
+  - [x] ホットキー登録
   - [x] ウィンドウ非表示設定
-  - [x] エラーハンドリング（基本）
+  - [x] 終了時に設定自動保存
+  - [x] エラーハンドリング
 
 ---
 
-## Phase 3: GUI実装（WPF） 【60%】
+## Phase 3: GUI実装（WPF） 【90%】🔄
 
 ### 3-1. MainWindow基本レイアウト ✅
 - [x] `UI/MainWindow.xaml` 作成
-  - [x] タブコントロール配置
+  - [x] タブコントロール配置（3タブ）
   - [x] ダークテーマ適用
   - [x] ウィンドウサイズ・位置設定
+  - [x] スタイル定義（Button, TextBox, ListBox, TextBlock）
 
-### 3-2. タブ1: カウンター操作 ✅
-- [x] カウンター操作UI
-  - [x] 現在値表示（TextBlock）
-  - [x] 「+」ボタン
-  - [x] 「-」ボタン
-  - [x] 「Reset」ボタン
+### 3-2. タブ1: カウンター管理 ✅
+- [x] カウンター管理UI
+  - [x] 「新規カウンター追加」ボタン
+  - [x] カウンター一覧（ListBox）
+  - [x] 各カウンターに名前・値・色表示
+  - [x] 各カウンターに編集・削除ボタン
 - [x] リアルタイム更新機能
-- [ ] 初期値設定UI
-  - [ ] NumericUpDown または TextBox
-- [ ] 起動時動作設定
-  - [ ] CheckBox（前回値復元）
+- [x] カウンター操作エリア
+  - [x] 選択中のカウンターで+/-/リセット
+- [x] カウンター追加機能（AddCounter_Click）
+- [x] カウンター編集機能（EditCounter_Click）
+- [x] カウンター削除機能（DeleteCounter_Click）
 
-### 3-3. タブ2: 接続情報 ✅
+### 3-3. タブ2: ホットキー設定 ✅
+- [x] ホットキー表示UI
+  - [x] カウンター毎のグループボックス
+  - [x] 増加・減少・リセットのホットキー表示
+  - [x] 「未設定」表示対応
+- [ ] ホットキー編集機能（未実装）
+  - [ ] 編集ボタン
+  - [ ] ホットキー設定ダイアログ
+  - [ ] キー入力待機
+  - [ ] キー競合チェック
+
+### 3-4. タブ3: 接続情報 ✅
 - [x] OBS用URL表示
 - [x] 「URLをコピー」ボタン
-- [x] 使用ポート表示
+- [x] 管理ページURL表示
+- [x] 「ブラウザで開く」ボタン
 - [x] サーバー状態表示
-- [x] 管理ページを開くボタン
-- [ ] 接続クライアント数表示
+- [ ] 接続クライアント数表示（未実装）
 
-### 3-4. タブ3: 設定（今後実装）
-- [ ] ホットキー設定UI
-  - [ ] 各機能のキー表示
-  - [ ] 「記録」ボタン
-  - [ ] キー入力待機機能
-  - [ ] キー競合チェック表示
-- [ ] 表示設定UI
-  - [ ] フォント選択（ComboBox）
-  - [ ] 文字色選択（ColorPicker）
-  - [ ] 文字サイズ（Slider）
-  - [ ] 背景色選択（ColorPicker）
-  - [ ] プレビュー表示
-- [ ] 演出設定UI
-  - [ ] スライド演出 ON/OFF（CheckBox）
-  - [ ] パーティクル演出 ON/OFF（CheckBox）
-  - [ ] アニメーション速度（Slider）
-  - [ ] リアルタイムプレビュー
+### 3-5. CounterEditDialog ✅
+- [x] `UI/CounterEditDialog.xaml` 作成
+  - [x] カウンター名入力
+  - [x] 色選択（5色プリセット）
+  - [x] OK/キャンセルボタン
+- [x] `UI/CounterEditDialog.xaml.cs` 実装
+  - [x] 編集モード対応
+  - [x] 新規追加モード対応
+  - [x] バリデーション（名前空チェック）
 
-### 3-5. MVVM実装（オプション）
-- [ ] ViewModelクラス作成
-- [ ] INotifyPropertyChanged実装
-- [ ] データバインディング設定
-- [ ] Command実装
+### 3-6. 名前空間衝突解決 ✅
+- [x] WPF vs WinForms の衝突解決
+  - [x] エイリアス使用（WpfButton, WpfMessageBox等）
+  - [x] 全箇所で統一
 
 ---
 
@@ -211,6 +261,8 @@
 ### 4-2. 管理画面 CSS ✅
 - [x] `wwwroot/css/manager.css` 作成
   - [x] ダークテーマ
+  - [x] グリッドレイアウト
+  - [x] カウンターカード表示
   - [x] レスポンシブデザイン
   - [x] ボタンスタイル
   - [x] ホバーエフェクト
@@ -218,7 +270,10 @@
 ### 4-3. 管理画面 JavaScript ✅
 - [x] `wwwroot/js/manager.js` 作成
   - [x] WebSocket接続
-  - [x] カウンター操作イベント
+  - [x] 複数カウンター対応
+  - [x] initメッセージ処理
+  - [x] counter_updateメッセージ処理
+  - [x] カウンター操作イベント（カウンターID指定）
   - [x] リアルタイム更新
   - [x] 自動再接続機能
 
@@ -230,18 +285,21 @@
 ### 4-5. OBS表示画面 CSS ✅
 - [x] `wwwroot/css/obs.css` 作成
   - [x] 中央配置
+  - [x] 縦並びレイアウト
   - [x] 背景透過対応
-  - [x] フォント・カラー設定
+  - [x] フォント・カラー設定（カウンター毎）
 
 ### 4-6. OBS表示画面 JavaScript ✅
 - [x] `wwwroot/js/obs.js` 作成
   - [x] WebSocket接続
+  - [x] 複数カウンター対応
   - [x] カウンター値更新
+  - [x] フラッシュエフェクト
   - [x] 自動再接続機能
 
 ---
 
-## Phase 5: アニメーション実装 【10%】
+## Phase 5: アニメーション実装 【10%】🔄
 
 ### 5-1. スライドイン演出
 - [ ] CSS Transition 実装（obs.css）
@@ -268,7 +326,7 @@
 
 ---
 
-## Phase 6: EXE化・配布準備 【0%】
+## Phase 6: EXE化・配布準備 【0%】⏳
 
 ### 6-1. アイコン準備
 - [ ] `Resources/icon.ico` 作成（複数サイズ含む）
@@ -315,58 +373,73 @@
 ## 🐛 バグ・課題管理
 
 ### 優先度: 高
-- ⚠️ **グローバルホットキー未実装** - 最優先で実装が必要
-- ⚠️ **設定の永続化未対応** - 再起動で設定が消える
+- ⚠️ **ホットキー設定UIが未実装** - 現在はconfig.json手動編集が必要
+- ⚠️ **カウンター毎のホットキー登録機能** - デフォルトカウンターのみ動作
 
 ### 優先度: 中
-- ⚠️ **WebSocketSharpの警告** - AddWebSocketServiceのdeprecatedメッセージ
 - ⚠️ **アイコンが仮アイコン** - 独自アイコンの作成が必要
+- ⚠️ **カウンター並び替え機能なし** - ドラッグ&ドロップ未実装
 
 ### 優先度: 低
-- 特になし
+- WebSocketSharpの警告（pragma directiveで抑制済み）
+
+### 解決済み ✅
+- ✅ 単一カウンターのみ対応 → 複数カウンター対応完了
+- ✅ 設定の永続化未対応 → ConfigManager実装完了
+- ✅ グローバルホットキー未実装 → HotkeyManager実装完了
+- ✅ StaticFileProvider.ServeFileメソッド欠落 → 実装完了
+- ✅ WPF/WinForms名前空間衝突 → エイリアスで全解決
 
 ---
 
 ## 📝 メモ・TODO
 
 ### 実装時の注意点
-- [x] グローバルホットキーは管理者権限不要で動作するか確認
+- [x] グローバルホットキーは管理者権限不要で動作
 - [x] WebSocketの自動再接続機能を実装済み
 - [x] ポート番号の衝突対策を実装済み
 - [x] OBS表示画面の背景透過を確認済み
 - [x] WPFウィンドウを完全に非表示にする（タスクバーに出さない）
+- [x] 設定の自動保存（終了時）
 
 ### C#特有の注意点
 - [x] `HttpListener` は管理者権限が必要な場合あり（localhost例外設定）
 - [x] WPF + NotifyIcon の組み合わせ（System.Windows.Forms参照必要）
 - [ ] 単一ファイル発行時の埋め込みリソースパス問題
-- [ ] `RegisterHotKey` の HWnd 取得方法
+- [x] `RegisterHotKey` の HWnd 取得方法（隠しウィンドウ使用）
 
 ### リファクタリング完了事項 ✅
 - [x] WebServer.cs を分割（300行→220行）
 - [x] HTML/CSS/JSの外部ファイル化
-- [x] 名前空間の整理（Core/Server/UI）
+- [x] 名前空間の整理（Core/Server/UI/Models）
 - [x] 名前空間の衝突解決（WPF vs WinForms）
+- [x] 単一カウンター → 複数カウンター対応
 
 ### 将来的な拡張候補
-- 複数カウンター対応
+- カウンター並び替え（ドラッグ&ドロップ）
 - カスタムテーマ機能
 - 効果音連動
 - プラグインシステム
+- Twitch/YouTube Chat連携
 
 ---
 
 ## 🎯 現在の作業
 
-**現在のフェーズ**: Phase 2 - コア機能実装（80%完了）  
-**次のタスク**: グローバルホットキー実装 (`Core/HotkeyManager.cs`)
+**現在のフェーズ**: Phase 3 - GUI実装（90%完了）  
+**次のタスク**: ホットキー設定UI実装 (`UI/HotkeyEditDialog.xaml`)
 
 **最近の成果**: 
-- ✅ WebServer.csのリファクタリング完了！
-- ✅ HTML/CSS/JSの外部ファイル化完了！
-- ✅ 名前空間の整理完了（Core/Server/UI）！
-- ✅ WPF設定画面実装完了！
-- ✅ 名前空間の衝突解決完了！
+- ✅ 複数カウンター対応への全面リニューアル完了！
+- ✅ データモデル新規作成（Counter, HotkeySettings, CounterSettings）
+- ✅ CounterManager実装完了！
+- ✅ HotkeyManager動的登録対応完了！
+- ✅ ConfigManager実装完了！
+- ✅ WebServer/API/WebSocket全面改修完了！
+- ✅ MainWindow大幅拡張完了！
+- ✅ CounterEditDialog実装完了！
+- ✅ Web UI（manager.js/obs.js）複数カウンター対応完了！
+- ✅ 全エラー・警告の修正完了！
 
 ---
 
@@ -375,9 +448,11 @@
 | マイルストーン | 目標日 | 状態 |
 |---------------|--------|------|
 | プロトタイプ完成（コア機能のみ） | - | ✅ 完了 |
-| GUI完成（WPF設定画面） | - | 🔄 60%完了 |
-| グローバルホットキー実装 | 次回 | ⏳ 未着手 |
-| 設定永続化実装 | 次回 | ⏳ 未着手 |
+| GUI完成（WPF設定画面） | - | 🔄 90%完了 |
+| 複数カウンター対応 | - | ✅ 完了 |
+| グローバルホットキー実装 | - | ✅ 完了 |
+| 設定永続化実装 | - | ✅ 完了 |
+| ホットキー設定UI実装 | 次回 | ⏳ 未着手 |
 | アニメーション実装完了 | 未定 | ⏳ 未着手 |
 | 初回リリース (v0.1.0) | 未定 | ⏳ 未着手 |
 
@@ -385,34 +460,50 @@
 
 ## 🔧 技術メモ
 
-### グローバルホットキー実装例
-```csharp
-// Win32 API のインポート
-[DllImport("user32.dll")]
-private static extern bool RegisterHotKey(IntPtr hWnd, int id, uint fsModifiers, uint vk);
-
-[DllImport("user32.dll")]
-private static extern bool UnregisterHotKey(IntPtr hWnd, int id);
-
-// WPFでのHwnd取得
-protected override void OnSourceInitialized(EventArgs e)
+### config.json の構造例
+```json
 {
-    base.OnSourceInitialized(e);
-    var helper = new WindowInteropHelper(this);
-    var source = HwndSource.FromHwnd(helper.Handle);
-    source.AddHook(HwndHook);
+  "Counters": [
+    {
+      "Id": "default",
+      "Name": "Default Counter",
+      "Value": 5,
+      "Color": "#00ff00"
+    },
+    {
+      "Id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "Name": "Death Counter",
+      "Value": 12,
+      "Color": "#ff0000"
+    }
+  ],
+  "Hotkeys": [
+    {
+      "CounterId": "default",
+      "Action": 0,
+      "Modifiers": 6,
+      "VirtualKey": 38
+    }
+  ],
+  "ServerPort": 8765
 }
-
-// 使用例
-RegisterHotKey(windowHandle, 1, MOD_CONTROL | MOD_SHIFT, VK_UP);
 ```
 
-### 設定ファイルパス例
+### ホットキー設定UI実装例
 ```csharp
-string configPath = Path.Combine(
-    Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
-    "config.json"
-);
+// PreviewKeyDown イベントでキー入力をキャプチャ
+protected override void OnPreviewKeyDown(KeyEventArgs e)
+{
+    uint modifiers = 0;
+    if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control)) modifiers |= 0x0002;
+    if (Keyboard.Modifiers.HasFlag(ModifierKeys.Shift)) modifiers |= 0x0004;
+    if (Keyboard.Modifiers.HasFlag(ModifierKeys.Alt)) modifiers |= 0x0001;
+    
+    uint vk = (uint)KeyInterop.VirtualKeyFromKey(e.Key);
+    
+    // ホットキー登録を試行
+    bool success = _hotkeyManager.RegisterHotkey(counterId, action, modifiers, vk);
+}
 ```
 
 ### 単一ファイル発行コマンド
@@ -437,8 +528,22 @@ dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=
 - 名前空間の衝突解決
 - 全体進捗60%達成
 
+### セッション3 (2026-01-04)
+- **重大な設計変更**: 単一カウンター → 複数カウンター対応
+- データモデル作成（Counter, HotkeySettings, CounterSettings）
+- CounterManager実装（複数カウンター管理）
+- HotkeyManager全面書き換え（動的登録対応）
+- ConfigManager実装（JSON永続化）
+- WebServer/API/WebSocket全面改修
+- MainWindow大幅拡張（カウンター管理UI）
+- CounterEditDialog実装
+- Web UI複数カウンター対応
+- 全エラー・警告の修正
+- 全体進捗85%達成 🎉
+
 ---
 
 **更新履歴**
 - 2026-01-04: C# 版としてタスク管理表作成（セッション1）
 - 2026-01-04: リファクタリング完了、WPF実装完了（セッション2）
+- 2026-01-04: 複数カウンター対応完了、85%達成（セッション3）
