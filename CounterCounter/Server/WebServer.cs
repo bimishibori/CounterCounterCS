@@ -96,10 +96,17 @@ namespace CounterCounter.Server
                     return;
                 }
 
+                if (path == "/")
+                {
+                    string html = _htmlProvider.GenerateManagerHtml(Port + 1);
+                    await SendHtmlResponseAsync(context, html);
+                    return;
+                }
+
                 if (path == "/obs.html")
                 {
                     string html = _htmlProvider.GenerateObsHtml(Port + 1);
-                    await SendHtmlResponse(context, html);
+                    await SendHtmlResponseAsync(context, html);
                     return;
                 }
 
@@ -130,7 +137,7 @@ namespace CounterCounter.Server
             }
         }
 
-        private async Task SendHtmlResponse(HttpListenerContext context, string html)
+        private async Task SendHtmlResponseAsync(HttpListenerContext context, string html)
         {
             context.Response.ContentType = "text/html; charset=utf-8";
             byte[] buffer = Encoding.UTF8.GetBytes(html);

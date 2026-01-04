@@ -11,14 +11,14 @@ namespace CounterCounter.UI
         public string CounterName => NameTextBox.Text;
         public string CounterColor { get; private set; } = "#00ff00";
 
-        public CounterEditDialog(Counter? counter)
+        public CounterEditDialog(string? name = null, string? color = null)
         {
             InitializeComponent();
 
-            if (counter != null)
+            if (name != null && color != null)
             {
-                NameTextBox.Text = counter.Name;
-                CounterColor = counter.Color;
+                NameTextBox.Text = name;
+                CounterColor = color;
             }
             else
             {

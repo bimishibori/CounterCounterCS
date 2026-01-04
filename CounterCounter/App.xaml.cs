@@ -55,8 +55,7 @@ namespace CounterCounter
             {
                 if (_mainWindow != null)
                 {
-                    _mainWindow.Show();
-                    _mainWindow.Activate();
+                    _mainWindow.ShowWindow();
                 }
             });
         }

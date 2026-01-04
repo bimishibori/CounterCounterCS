@@ -46,6 +46,18 @@ namespace CounterCounter.Core
             }
         }
 
+        public void AddCounter(string name, string color)
+        {
+            var counter = new Counter
+            {
+                Id = Guid.NewGuid().ToString(),
+                Name = name,
+                Value = 0,
+                Color = color
+            };
+            AddCounter(counter);
+        }
+
         public void RemoveCounter(string counterId)
         {
             lock (_lock)

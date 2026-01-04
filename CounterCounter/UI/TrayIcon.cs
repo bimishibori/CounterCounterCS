@@ -38,6 +38,7 @@ namespace CounterCounter.UI
             var contextMenu = new ContextMenuStrip();
             contextMenu.Items.Add("設定を開く", null, OnShowSettings);
             contextMenu.Items.Add(new ToolStripSeparator());
+            contextMenu.Items.Add("管理ページを開く", null, OnOpenManagerPage);
             contextMenu.Items.Add("OBS URLをコピー", null, OnCopyObsUrl);
             contextMenu.Items.Add(new ToolStripSeparator());
             contextMenu.Items.Add("設定を保存", null, OnSaveSettings);
@@ -51,6 +52,27 @@ namespace CounterCounter.UI
         private void OnShowSettings(object? sender, EventArgs e)
         {
             ShowSettingsRequested?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void OnOpenManagerPage(object? sender, EventArgs e)
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = $"http://localhost:{_httpPort}/",
+                    UseShellExecute = true
+                });
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"ブラウザを開けませんでした: {ex.Message}",
+                    "エラー",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error
+                );
+            }
         }
 
         private void OnCopyObsUrl(object? sender, EventArgs e)
