@@ -1,42 +1,57 @@
 ﻿// CounterCounter/UI/MainWindow.xaml.cs
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using CounterCounter.Core;
 using CounterCounter.Models;
-using WpfClipboard = System.Windows.Clipboard;
+using CounterCounter.Server;
+using CounterCounter.UI.Views;
+using WpfButton = System.Windows.Controls.Button;
 using WpfMessageBox = System.Windows.MessageBox;
+using WpfColor = System.Windows.Media.Color;
+using WpfColorConverter = System.Windows.Media.ColorConverter;
+using WpfSolidColorBrush = System.Windows.Media.SolidColorBrush;
 
 namespace CounterCounter.UI
 {
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
         private readonly CounterManager _counterManager;
+        private readonly ConfigManager _configManager;
+        private readonly CounterSettings _settings;
+        private WebServer? _webServer;
+        private WebSocketServer? _wsServer;
+        private HotkeyManager? _hotkeyManager;
+        private IntPtr _hwnd;
         private int _httpPort;
         private int _wsPort;
         private bool _isServerRunning;
 
+        private CounterManagementView? _counterManagementView;
+        private ServerSettingsView? _serverSettingsView;
+        private ConnectionInfoView? _connectionInfoView;
+
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        public bool IsServerStopped => !_isServerRunning;
-
-        public MainWindow(CounterManager counterManager, int httpPort, int wsPort)
+        public MainWindow(CounterManager counterManager, ConfigManager configManager, CounterSettings settings)
         {
             InitializeComponent();
             DataContext = this;
 
             _counterManager = counterManager;
-            _httpPort = httpPort;
-            _wsPort = wsPort;
-            _isServerRunning = true;
+            _configManager = configManager;
+            _settings = settings;
+            _httpPort = settings.ServerPort;
+            _wsPort = _httpPort + 1;
+            _isServerRunning = false;
 
-            _counterManager.CounterChanged += OnCounterChanged;
-
-            PortTextBox.Text = _httpPort.ToString();
-            UpdateConnectionInfo();
-            UpdateCounterList();
             UpdateServerStatus();
+            ShowCountersView();
+        }
+
+        public void SetHwnd(IntPtr hwnd)
+        {
+            _hwnd = hwnd;
         }
 
         public void ShowWindow()
@@ -52,86 +67,110 @@ namespace CounterCounter.UI
             Hide();
         }
 
-        private void UpdateCounterList()
+        private void NavCounters_Click(object sender, RoutedEventArgs e)
         {
-            var counters = _counterManager.GetAllCounters();
-            CountersListBox.ItemsSource = counters.Select(c => new CounterViewModel(c, _counterManager)).ToList();
+            ShowCountersView();
+            UpdateNavButtons(NavCountersButton);
         }
 
-        private void UpdateConnectionInfo()
+        private void NavServer_Click(object sender, RoutedEventArgs e)
         {
-            ManagementUrlText.Text = $"http://localhost:{_httpPort}/";
-            ObsUrlText.Text = $"http://localhost:{_httpPort}/obs.html";
+            ShowServerSettingsView();
+            UpdateNavButtons(NavServerButton);
         }
 
-        private void UpdateServerStatus()
+        private void NavConnection_Click(object sender, RoutedEventArgs e)
+        {
+            ShowConnectionInfoView();
+            UpdateNavButtons(NavConnectionButton);
+        }
+
+        private void UpdateNavButtons(WpfButton activeButton)
+        {
+            var inactiveBrush = new WpfSolidColorBrush((WpfColor)WpfColorConverter.ConvertFromString("#444444"));
+            var activeBrush = new WpfSolidColorBrush((WpfColor)WpfColorConverter.ConvertFromString("#00d4ff"));
+
+            NavCountersButton.Background = inactiveBrush;
+            NavServerButton.Background = inactiveBrush;
+            NavConnectionButton.Background = inactiveBrush;
+
+            activeButton.Background = activeBrush;
+        }
+
+        private void ShowCountersView()
+        {
+            _counterManagementView ??= new CounterManagementView(_counterManager, _settings.Hotkeys);
+            ContentArea.Children.Clear();
+            ContentArea.Children.Add(_counterManagementView);
+        }
+
+        private void ShowServerSettingsView()
+        {
+            _serverSettingsView = new ServerSettingsView(_httpPort, _isServerRunning);
+            _serverSettingsView.ServerStartRequested += OnServerStartRequested;
+            _serverSettingsView.ServerStopRequested += OnServerStopRequested;
+            _serverSettingsView.SaveSettingsRequested += OnSaveSettingsRequested;
+            ContentArea.Children.Clear();
+            ContentArea.Children.Add(_serverSettingsView);
+        }
+
+        private void ShowConnectionInfoView()
+        {
+            _connectionInfoView = new ConnectionInfoView(_httpPort, _wsPort, _isServerRunning);
+            ContentArea.Children.Clear();
+            ContentArea.Children.Add(_connectionInfoView);
+        }
+
+        private void OnServerStartRequested(object? sender, int port)
         {
             if (_isServerRunning)
             {
-                ServerStatusText.Text = "起動中";
-                ServerStatusText.Foreground = System.Windows.Media.Brushes.LimeGreen;
-                StartServerButton.IsEnabled = false;
-                StopServerButton.IsEnabled = true;
-            }
-            else
-            {
-                ServerStatusText.Text = "停止中";
-                ServerStatusText.Foreground = System.Windows.Media.Brushes.Red;
-                StartServerButton.IsEnabled = true;
-                StopServerButton.IsEnabled = false;
-            }
-            OnPropertyChanged(nameof(IsServerStopped));
-        }
-
-        private void OnCounterChanged(object? sender, CounterChangedEventArgs e)
-        {
-            Dispatcher.Invoke(UpdateCounterList);
-        }
-
-        private void AddCounter_Click(object sender, RoutedEventArgs e)
-        {
-            if (_isServerRunning)
-            {
-                WpfMessageBox.Show(
-                    "サーバー起動中はカウンターを追加できません。\nサーバーを停止してください。",
-                    "エラー",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning
-                );
+                WpfMessageBox.Show("サーバーは既に起動しています。", "情報", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
-            var dialog = new CounterEditDialog(null);
-            if (dialog.ShowDialog() == true && dialog.Counter != null)
+            try
             {
-                _counterManager.AddCounter(dialog.Counter);
-                UpdateCounterList();
+                _httpPort = port;
+                _wsPort = port + 1;
+
+                _webServer = new WebServer(_counterManager);
+                Task.Run(async () => await _webServer.StartAsync(_httpPort));
+
+                _wsServer = new WebSocketServer(_counterManager, _httpPort);
+                _wsServer.Start();
+
+                _hotkeyManager = new HotkeyManager();
+                _hotkeyManager.Initialize(_hwnd);
+                RegisterHotkeys();
+
+                _isServerRunning = true;
+                UpdateServerStatus();
+
+                Dispatcher.Invoke(() =>
+                {
+                    WpfMessageBox.Show(
+                        $"サーバーを起動しました。\nHTTP: {_httpPort}\nWebSocket: {_wsPort}",
+                        "起動完了",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information
+                    );
+                });
+            }
+            catch (Exception ex)
+            {
+                WpfMessageBox.Show($"サーバーの起動に失敗しました: {ex.Message}", "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
-        private void StartServer_Click(object sender, RoutedEventArgs e)
+        private void OnServerStopRequested(object? sender, EventArgs e)
         {
-            if (!int.TryParse(PortTextBox.Text, out int newPort) || newPort < 1024 || newPort > 65535)
+            if (!_isServerRunning)
             {
-                WpfMessageBox.Show(
-                    "ポート番号は1024～65535の範囲で指定してください。",
-                    "エラー",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning
-                );
+                WpfMessageBox.Show("サーバーは起動していません。", "情報", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
-            WpfMessageBox.Show(
-                "サーバーの起動機能は次回実装予定です。\n現在はアプリ再起動でポート変更が反映されます。",
-                "未実装",
-                MessageBoxButton.OK,
-                MessageBoxImage.Information
-            );
-        }
-
-        private void StopServer_Click(object sender, RoutedEventArgs e)
-        {
             var result = WpfMessageBox.Show(
                 "サーバーを停止しますか？\nOBSからの接続が切断されます。",
                 "確認",
@@ -141,83 +180,88 @@ namespace CounterCounter.UI
 
             if (result == MessageBoxResult.Yes)
             {
-                WpfMessageBox.Show(
-                    "サーバーの停止機能は次回実装予定です。",
-                    "未実装",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information
-                );
+                _hotkeyManager?.Dispose();
+                _hotkeyManager = null;
+
+                _wsServer?.Dispose();
+                _wsServer = null;
+
+                _webServer?.Dispose();
+                _webServer = null;
+
+                _isServerRunning = false;
+                UpdateServerStatus();
+
+                WpfMessageBox.Show("サーバーを停止しました。", "停止完了", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
 
-        private void SaveSettings_Click(object sender, RoutedEventArgs e)
+        private void OnSaveSettingsRequested(object? sender, int port)
+        {
+            _settings.ServerPort = port;
+            _settings.Counters = _counterManager.GetAllCounters();
+            _configManager.Save(_settings);
+
+            WpfMessageBox.Show(
+                "設定を保存しました。\nポート変更を反映するには、サーバーを再起動してください。",
+                "保存完了",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information
+            );
+        }
+
+        private void RegisterHotkeys()
+        {
+            if (_hotkeyManager == null) return;
+
+            foreach (var hotkey in _settings.Hotkeys)
+            {
+                _hotkeyManager.RegisterHotkey(hotkey.CounterId, hotkey.Action, hotkey.Modifiers, hotkey.VirtualKey);
+            }
+
+            _hotkeyManager.HotkeyPressed += OnHotkeyPressed;
+        }
+
+        private void OnHotkeyPressed(object? sender, HotkeyPressedEventArgs e)
+        {
+            switch (e.Action)
+            {
+                case HotkeyAction.Increment:
+                    _counterManager.Increment(e.CounterId);
+                    break;
+                case HotkeyAction.Decrement:
+                    _counterManager.Decrement(e.CounterId);
+                    break;
+                case HotkeyAction.Reset:
+                    _counterManager.Reset(e.CounterId);
+                    break;
+            }
+        }
+
+        private void UpdateServerStatus()
         {
             if (_isServerRunning)
             {
-                WpfMessageBox.Show(
-                    "サーバー起動中は設定を保存できません。\nサーバーを停止してください。",
-                    "エラー",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning
-                );
-                return;
+                ServerStatusText.Text = "起動中";
+                ServerStatusDot.Fill = new WpfSolidColorBrush((WpfColor)WpfColorConverter.ConvertFromString("#5fec5f"));
             }
-
-            if (!int.TryParse(PortTextBox.Text, out int newPort) || newPort < 1024 || newPort > 65535)
+            else
             {
-                WpfMessageBox.Show(
-                    "ポート番号は1024～65535の範囲で指定してください。",
-                    "エラー",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning
-                );
-                return;
+                ServerStatusText.Text = "停止中";
+                ServerStatusDot.Fill = new WpfSolidColorBrush((WpfColor)WpfColorConverter.ConvertFromString("#ff4757"));
             }
-
-            var app = (System.Windows.Application)System.Windows.Application.Current;
-            var counterApp = app as CounterCounter.App;
-            if (counterApp?.Settings != null)
-            {
-                counterApp.Settings.ServerPort = newPort;
-                counterApp.Settings.Counters = _counterManager.GetAllCounters();
-
-                var configManager = new ConfigManager();
-                configManager.Save(counterApp.Settings);
-
-                WpfMessageBox.Show(
-                    "設定を保存しました。\nポート変更を反映するにはアプリを再起動してください。",
-                    "保存完了",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information
-                );
-            }
-        }
-
-        private void OpenManagementPage_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                Process.Start(new ProcessStartInfo
-                {
-                    FileName = $"http://localhost:{_httpPort}/",
-                    UseShellExecute = true
-                });
-            }
-            catch (Exception ex)
-            {
-                WpfMessageBox.Show($"ブラウザを開けませんでした: {ex.Message}", "エラー");
-            }
-        }
-
-        private void CopyObsUrl_Click(object sender, RoutedEventArgs e)
-        {
-            WpfClipboard.SetText($"http://localhost:{_httpPort}/obs.html");
-            WpfMessageBox.Show("URLをクリップボードにコピーしました", "コピー完了");
         }
 
         protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        public void Cleanup()
+        {
+            _hotkeyManager?.Dispose();
+            _wsServer?.Dispose();
+            _webServer?.Dispose();
         }
     }
 }

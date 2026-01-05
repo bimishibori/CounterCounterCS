@@ -28,8 +28,21 @@ namespace CounterCounter.Core
             lock (_lock)
             {
                 _counters[counter.Id] = counter;
-                CounterChanged?.Invoke(this, new CounterChangedEventArgs(counter, counter.Value, counter.Value, "add"));
+                CounterChanged?.Invoke(this, new CounterChangedEventArgs(
+                    counter.Id, counter, counter.Value, counter.Value, "add"));
             }
+        }
+
+        public void AddCounter(string name, string color)
+        {
+            var counter = new Counter
+            {
+                Id = Guid.NewGuid().ToString(),
+                Name = name,
+                Value = 0,
+                Color = color
+            };
+            AddCounter(counter);
         }
 
         public void RemoveCounter(string id)
@@ -38,7 +51,8 @@ namespace CounterCounter.Core
             {
                 if (_counters.TryRemove(id, out var counter))
                 {
-                    CounterChanged?.Invoke(this, new CounterChangedEventArgs(counter, counter.Value, counter.Value, "remove"));
+                    CounterChanged?.Invoke(this, new CounterChangedEventArgs(
+                        id, counter, counter.Value, counter.Value, "remove"));
                 }
             }
         }
@@ -64,7 +78,8 @@ namespace CounterCounter.Core
                 {
                     counter.Name = name;
                     counter.Color = color;
-                    CounterChanged?.Invoke(this, new CounterChangedEventArgs(counter, counter.Value, counter.Value, "update"));
+                    CounterChanged?.Invoke(this, new CounterChangedEventArgs(
+                        id, counter, counter.Value, counter.Value, "update"));
                 }
             }
         }
@@ -77,7 +92,8 @@ namespace CounterCounter.Core
                 {
                     int oldValue = counter.Value;
                     counter.Value++;
-                    CounterChanged?.Invoke(this, new CounterChangedEventArgs(counter, oldValue, counter.Value, "increment"));
+                    CounterChanged?.Invoke(this, new CounterChangedEventArgs(
+                        id, counter, oldValue, counter.Value, "increment"));
                 }
             }
         }
@@ -90,7 +106,8 @@ namespace CounterCounter.Core
                 {
                     int oldValue = counter.Value;
                     counter.Value--;
-                    CounterChanged?.Invoke(this, new CounterChangedEventArgs(counter, oldValue, counter.Value, "decrement"));
+                    CounterChanged?.Invoke(this, new CounterChangedEventArgs(
+                        id, counter, oldValue, counter.Value, "decrement"));
                 }
             }
         }
@@ -103,7 +120,8 @@ namespace CounterCounter.Core
                 {
                     int oldValue = counter.Value;
                     counter.Value = 0;
-                    CounterChanged?.Invoke(this, new CounterChangedEventArgs(counter, oldValue, 0, "reset"));
+                    CounterChanged?.Invoke(this, new CounterChangedEventArgs(
+                        id, counter, oldValue, 0, "reset"));
                 }
             }
         }
@@ -116,7 +134,8 @@ namespace CounterCounter.Core
                 {
                     int oldValue = counter.Value;
                     counter.Value = value;
-                    CounterChanged?.Invoke(this, new CounterChangedEventArgs(counter, oldValue, value, "set"));
+                    CounterChanged?.Invoke(this, new CounterChangedEventArgs(
+                        id, counter, oldValue, value, "set"));
                 }
             }
         }
@@ -124,13 +143,15 @@ namespace CounterCounter.Core
 
     public class CounterChangedEventArgs : EventArgs
     {
+        public string CounterId { get; }
         public Counter Counter { get; }
         public int OldValue { get; }
         public int NewValue { get; }
         public string ChangeType { get; }
 
-        public CounterChangedEventArgs(Counter counter, int oldValue, int newValue, string changeType)
+        public CounterChangedEventArgs(string counterId, Counter counter, int oldValue, int newValue, string changeType)
         {
+            CounterId = counterId;
             Counter = counter;
             OldValue = oldValue;
             NewValue = newValue;

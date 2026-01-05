@@ -31,6 +31,7 @@ h1 {
     background: linear-gradient(90deg, #00ff00, #00ccff);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .status {
