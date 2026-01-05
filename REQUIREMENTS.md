@@ -1,5 +1,8 @@
 # カウンター・カウンター 要求仕様書（C#版）
 
+**バージョン**: 1.2  
+**最終更新**: 2026-01-05
+
 ## 1. 概要
 
 本仕様書は、OBS配信者向けに提供する  
@@ -32,7 +35,8 @@
 - 配布形態は EXE（単一ファイル or インストーラ）
 - GUIは WPF
 - 常駐型だが Windowsサービスにはしない
-- **起動時はサーバー停止状態**でユーザーが手動起動
+- **起動時はタスクトレイに常駐、WPF画面は非表示**
+- **サーバーは手動起動方式**
 
 ---
 
@@ -98,8 +102,20 @@ CounterCounter/
 │  ├─ UI/
 │  │  ├─ MainWindow.xaml       # 設定GUI（モダンデザイン）
 │  │  ├─ MainWindow.xaml.cs
-│  │  ├─ TrayIcon.cs           # タスクトレイ管理
-│  │  └─ CounterEditDialog.xaml # カウンター編集ダイアログ
+│  │  ├─ Dialogs/              # ダイアログ専用
+│  │  │  ├─ CounterEditDialog.xaml
+│  │  │  └─ CounterEditDialog.xaml.cs
+│  │  ├─ Infrastructure/               # システム機能
+│  │  │  └─ TrayIcon.cs        # タスクトレイ管理
+│  │  └─ Views/                # ビューコンポーネント
+│  │     ├─ CounterManagementView.xaml
+│  │     ├─ CounterManagementView.xaml.cs
+│  │     ├─ ServerSettingsView.xaml
+│  │     ├─ ServerSettingsView.xaml.cs
+│  │     ├─ HotkeySettingsView.xaml
+│  │     ├─ HotkeySettingsView.xaml.cs
+│  │     ├─ ConnectionInfoView.xaml
+│  │     └─ ConnectionInfoView.xaml.cs
 │  ├─ Models/
 │  │  ├─ Counter.cs
 │  │  ├─ HotkeySettings.cs
@@ -116,6 +132,11 @@ CounterCounter/
 ├─ README.md
 └─ LICENSE.txt
 ```
+
+**削除対象**:
+- `wwwroot/index.html`（ブラウザ管理画面は不要）
+- `wwwroot/css/manager.css`
+- `wwwroot/js/manager.js`
 
 ---
 
@@ -134,12 +155,14 @@ CounterCounter/
 1. CounterCounter.exe 起動
 2. 設定ファイル読み込み（config.json）
 3. タスクトレイにアイコン表示
-4. サーバーは停止状態で待機
-5. ユーザーが「サーバー起動」ボタンを押す
-6. HTTPサーバー起動（ポート: 8765）
-7. WebSocketサーバー起動（ポート: 8766）
-8. グローバルホットキー登録
-9. バックグラウンドで待機
+4. WPF画面は非表示（タスクトレイのみ）← 変更！
+5. サーバーは停止状態で待機
+6. ユーザーが「設定を開く」でWPF画面表示
+7. 「サーバー起動」ボタンで手動起動
+8. HTTPサーバー起動（ポート: 8765）
+9. WebSocketサーバー起動（ポート: 8766）
+10. グローバルホットキー登録
+11. バックグラウンドで待機
 ```
 
 ---
@@ -149,6 +172,7 @@ CounterCounter/
 ### 7.1 起動時動作
 
 - EXE起動時にタスクトレイへ登録
+- **WPF画面は表示しない**（タスクトレイのみ）← 新仕様！
 - **サーバーは自動起動しない**
 - グローバルホットキーも未登録状態
 
@@ -157,9 +181,12 @@ CounterCounter/
 | メニュー項目 | 動作 |
 |--------------|------|
 | 設定を開く | WPF設定ウィンドウを表示 |
+| サーバー起動 | HTTPサーバー・WebSocketサーバー・ホットキーを起動 ← 新規！ |
+| サーバー停止 | サーバー・ホットキーを停止 ← 新規！ |
 | OBS表示用URLをコピー | `http://localhost:8765/obs.html` をクリップボードにコピー |
-| 設定を保存 | config.jsonに保存 |
 | 終了 | サーバー停止・アプリ終了 |
+
+**削除**: ~~設定を保存~~ （自動保存に変更）
 
 ### 7.3 実装方法
 
@@ -189,8 +216,8 @@ CounterCounter/
 
 ### 8.3 設定UI
 
-- WPFダイアログで視覚的に設定
-- 現在のキーを表示
+- **CounterEditDialog でカウンター毎にホットキー設定可能** ← 新仕様！
+- 増加・減少のショートカットキーを個別に設定
 - 「記録」ボタンで新しいキーを待機
 - キー競合チェック機能
 
@@ -234,7 +261,7 @@ CounterCounter/
 | `/api/counter/:id/reset` | POST | カウンターリセット |
 | `/api/settings` | GET/POST | 設定の取得・更新 |
 
-**注意**: ブラウザ管理画面（`/`）は不要。WPF設定画面のみ使用。
+**削除**: ~~`/`（ブラウザ管理画面）~~ - WPF設定画面のみ使用
 
 ### 10.2 WebSocketイベント
 
@@ -252,9 +279,10 @@ CounterCounter/
 ### 10.4 起動制御
 
 - **アプリ起動時はサーバー停止状態**
-- WPF設定画面の「サーバー起動」ボタンで手動起動
-- 「サーバー停止」ボタンで手動停止
+- WPF設定画面の「サーバー起動/停止」トグルボタンで制御 ← 変更！
+- タスクトレイメニューからも起動/停止可能 ← 新規！
 - 起動/停止時にホットキーも同時に登録/解除
+- **サーバー起動中はポート番号変更不可** ← 新仕様！
 
 ---
 
@@ -264,8 +292,8 @@ CounterCounter/
 
 | 機能 | API | グローバルホットキー | GUI操作 |
 |------|-----|---------------------|---------|
-| カウント増加 | POST `/api/counter/:id/increment` | `Ctrl+Shift+↑` | ボタン |
-| カウント減少 | POST `/api/counter/:id/decrement` | `Ctrl+Shift+↓` | ボタン |
+| カウント増加 | POST `/api/counter/:id/increment` | カウンター毎に設定可能 | ボタン |
+| カウント減少 | POST `/api/counter/:id/decrement` | カウンター毎に設定可能 | ボタン |
 | リセット | POST `/api/counter/:id/reset` | `Ctrl+Shift+R` | ボタン |
 | 初期値設定 | POST `/api/settings` | - | 設定画面 |
 
@@ -287,15 +315,16 @@ CounterCounter/
 - MVVM パターン推奨
 - **モダン・スタイリッシュなデザイン**
   - フラットデザイン
-  - ダークテーマ（背景: #1e1e1e系）
+  - ダークテーマ（背景: #0f0f0f系）
   - アニメーション付きUI
   - グラデーション、影、角丸を活用
+- **アプリ起動時は非表示、タスクトレイから「設定を開く」で表示** ← 新仕様！
 
 ### 12.2 デザイン要件
 
-- **ダークテーマ**（背景: #1e1e1e系）
+- **ダークテーマ**（背景: #0f0f0f系）
 - モダンなフラットデザイン
-- タブではなくサイドバーナビゲーション推奨
+- サイドバーナビゲーション
 - アニメーション付きUI
 - 配信者向けデザイン
 - カウンター一覧で**ホットキー表示**
@@ -309,10 +338,10 @@ CounterCounter/
 - カウンター追加・編集・削除ボタン
 
 #### セクション2: サーバー設定
-| 設定項目 | 入力タイプ | デフォルト値 |
-|----------|-----------|--------------|
-| サーバー起動/停止 | ボタン | 停止 |
-| ポート番号 | テキストボックス | 8765 |
+| 設定項目 | 入力タイプ | デフォルト値 | 備考 |
+|----------|-----------|--------------|------|
+| サーバー起動/停止 | トグルボタン | 停止 | ← 変更！ |
+| ポート番号 | テキストボックス | 8765 | サーバー起動中は変更不可 ← 新仕様！ |
 
 #### セクション3: 接続情報
 - OBS用URL表示
@@ -323,9 +352,47 @@ CounterCounter/
 
 ---
 
-## 13. アニメーション仕様
+## 13. CounterEditDialog 仕様（拡張）
 
-### 13.1 スライドイン演出
+### 13.1 設定項目
+
+| 項目 | 入力タイプ | 説明 |
+|------|-----------|------|
+| カウンター名 | テキストボックス | カウンターの表示名 |
+| 色 | カラーピッカー | カラーチャートから選択 ← 変更！ |
+| 増加ホットキー | キー入力 | カウンター増加のショートカット ← 新規！ |
+| 減少ホットキー | キー入力 | カウンター減少のショートカット ← 新規！ |
+
+### 13.2 色選択の実装
+
+**変更前**: プリセット5色（赤・緑・青・黄・紫）のボタン選択  
+**変更後**: WPF標準の `ColorDialog` または カスタムカラーピッカー
+
+**実装方針**:
+- `System.Windows.Forms.ColorDialog` を使用（簡単）
+- または WPF カスタムコントロールで実装（モダン）
+- カラーコード（#RRGGBB）を取得して保存
+
+### 13.3 ホットキー入力の実装
+
+- 「記録」ボタンをクリック
+- キー入力待機状態になる
+- ユーザーがキーを押す（例: `Ctrl+Shift+F1`）
+- 入力されたキー組み合わせを表示
+- キー競合チェック（他のカウンターと重複していないか）
+- OKで保存
+
+**表示例**:
+```
+増加ホットキー: [Ctrl+Shift+↑] [変更...]
+減少ホットキー: [Ctrl+Shift+↓] [変更...]
+```
+
+---
+
+## 14. アニメーション仕様
+
+### 14.1 スライドイン演出
 
 - 数値が変化するたびに実行
 - **増加時**：下から上へスライドイン + フェードイン
@@ -333,7 +400,7 @@ CounterCounter/
 - 演出時間：300ms（設定で変更可能）
 - CSS Transitionで実装
 
-### 13.2 パーティクル演出
+### 14.2 パーティクル演出
 
 - 数値変化時のみ発生（常時表示なし）
 - Canvas 2Dで軽量描画
@@ -341,7 +408,7 @@ CounterCounter/
 - 色：カウンター文字色に連動
 - ON / OFF 切替可能（デフォルト: ON）
 
-### 13.3 実装方針
+### 14.3 実装方針
 
 - CSSアニメーション優先（軽量・簡潔）
 - パーティクルのみJavaScript Canvas使用
@@ -349,52 +416,49 @@ CounterCounter/
 
 ---
 
-## 14. 設定管理仕様
+## 15. 設定管理仕様
 
-### 14.1 設定保存方法
+### 15.1 設定保存方法
 
 - JSONファイル保存（`config.json`）
 - `System.Text.Json` を使用
 - アプリ起動時に自動読み込み
-- 設定変更時に自動保存
+- **設定変更時に自動保存**（手動保存ボタンは不要） ← 変更！
 
-### 14.2 設定項目JSON構造
+### 15.2 設定項目JSON構造
 
 ```json
 {
-  "counter": {
-    "initial_value": 0,
-    "current_value": 0,
-    "restore_on_startup": false
-  },
-  "display": {
-    "font_family": "Arial",
-    "font_size": 120,
-    "color": "#ffffff",
-    "background_color": "transparent"
-  },
-  "animation": {
-    "slide_enabled": true,
-    "particle_enabled": true,
-    "duration_ms": 300
-  },
-  "hotkeys": {
-    "increment": "Ctrl+Shift+Up",
-    "decrement": "Ctrl+Shift+Down",
-    "reset": "Ctrl+Shift+R"
-  },
-  "server": {
-    "port": 8765,
-    "auto_start": false
-  }
+  "Counters": [
+    {
+      "Id": "counter-1",
+      "Name": "Death Counter",
+      "Value": 0,
+      "Color": "#ff6b6b"
+    }
+  ],
+  "Hotkeys": [
+    {
+      "CounterId": "counter-1",
+      "Action": 0,
+      "Modifiers": 6,
+      "VirtualKey": 38
+    }
+  ],
+  "ServerPort": 8765
 }
 ```
 
+**説明**:
+- `Action`: 0=Increment, 1=Decrement, 2=Reset
+- `Modifiers`: 2=Ctrl, 4=Shift, 6=Ctrl+Shift, 1=Alt
+- `VirtualKey`: 38=↑, 40=↓, 112=F1, など
+
 ---
 
-## 15. EXE化・配布仕様
+## 16. EXE化・配布仕様
 
-### 15.1 ビルド設定
+### 16.1 ビルド設定
 
 #### 単一ファイルEXE
 ```bash
@@ -406,13 +470,13 @@ dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=
 - スタートアップ登録オプション
 - アンインストール機能
 
-### 15.2 ビルド成果物
+### 16.2 ビルド成果物
 
 - `CounterCounter.exe`（単一ファイル）
 - サイズ目安：15-30MB（.NET含む）
 - または インストーラ `CounterCounter_Setup.exe`
 
-### 15.3 配布形態
+### 16.3 配布形態
 
 **オプション1: ZIP配布**
 - CounterCounter.exe
@@ -425,14 +489,14 @@ dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=
 
 ---
 
-## 16. 配布・利用方法
+## 17. 配布・利用方法
 
-### 16.1 利用手順（配信者向け）
+### 17.1 利用手順（配信者向け）
 
 1. `CounterCounter.exe` を起動（初回は Windows Defender警告が出る場合あり）
-2. タスクトレイにアイコンが表示される
+2. タスクトレイにアイコンが表示される（WPF画面は非表示） ← 変更！
 3. トレイアイコンを右クリック →「設定を開く」
-4. 「サーバー起動」ボタンをクリック
+4. 「サーバー起動/停止」トグルボタンで起動 ← 変更！
 5. ホットキーを確認・変更
 6. OBSで「ソース追加」→「ブラウザ」
 7. URL欄に `http://localhost:8765/obs.html` を入力
@@ -441,26 +505,26 @@ dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=
 
 ---
 
-## 17. エラーハンドリング
+## 18. エラーハンドリング
 
-### 17.1 ポート使用中エラー
+### 18.1 ポート使用中エラー
 
 - 8765が使用中の場合、8766, 8767... と自動で試行
 - 10個試して全て失敗した場合、エラーダイアログ表示
 - トレイアイコンに使用中ポート番号を表示
 
-### 17.2 ホットキー競合エラー
+### 18.2 ホットキー競合エラー
 
 - 登録失敗時は「キーが使用中です」とダイアログ表示
 - 別のキーを選択するよう促す
 
-### 17.3 WebSocket切断時
+### 18.3 WebSocket切断時
 
 - クライアント側で自動再接続を試行（5秒間隔）
 
 ---
 
-## 18. パフォーマンス要件
+## 19. パフォーマンス要件
 
 - アプリ起動時間：1秒以内
 - カウンター操作レスポンス：50ms以内
@@ -470,7 +534,7 @@ dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=
 
 ---
 
-## 19. セキュリティ考慮事項
+## 20. セキュリティ考慮事項
 
 - **localhostのみ**でリッスン（外部アクセス不可）
 - 認証機能なし（ローカル利用のため不要）
@@ -478,7 +542,7 @@ dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=
 
 ---
 
-## 20. 非要件（対象外）
+## 21. 非要件（対象外）
 
 - OBS公式C++プラグインの開発
 - Windowsサービスとしての常駐
@@ -491,10 +555,10 @@ dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=
 
 ---
 
-## 21. 将来拡張（検討項目）
+## 22. 将来拡張（検討項目）
 
 ### Phase 2
-- 複数カウンター対応
+- ~~複数カウンター対応~~ ← 完了！
 - プリセット管理機能
 - カウンター履歴機能
 
@@ -506,21 +570,21 @@ dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=
 
 ---
 
-## 22. 開発環境
+## 23. 開発環境
 
-### 22.1 推奨環境
+### 23.1 推奨環境
 
 - IDE：Visual Studio 2022（Community Edition可）
 - .NET：.NET 6 SDK 以上（.NET 8推奨）
 - OS：Windows 10/11
 
-### 22.2 必要なワークロード
+### 23.2 必要なワークロード
 
 Visual Studioインストール時に選択：
 - .NET デスクトップ開発
 - ASP.NET と Web 開発（オプション）
 
-### 22.3 NuGetパッケージ
+### 23.3 NuGetパッケージ
 
 ```xml
 <PackageReference Include="WebSocketSharp-netstandard" Version="1.0.1" />
@@ -529,21 +593,26 @@ Visual Studioインストール時に選択：
 
 ---
 
-## 23. テスト方針
+## 24. テスト方針
 
-### 23.1 テスト項目
+### 24.1 テスト項目
 
 - アプリ起動・停止
-- サーバー手動起動・停止
+- タスクトレイ常駐・初期非表示 ← 追加！
+- サーバー手動起動・停止（トグルボタン） ← 変更！
+- タスクトレイからサーバー起動・停止 ← 追加！
 - グローバルホットキー動作
 - カウンター増減・リセット
 - WebSocket通信
 - 設定変更の反映
-- 設定ファイル保存・読み込み
+- 設定ファイル自動保存・読み込み ← 変更！
 - アニメーション動作
 - OBSでの表示確認
+- CounterEditDialog - カラーピッカー動作 ← 追加！
+- CounterEditDialog - ホットキー設定 ← 追加！
+- ポート番号変更不可（サーバー起動中） ← 追加！
 
-### 23.2 テスト環境
+### 24.2 テスト環境
 
 - OBS Studio 最新版
 - Windows 10/11
@@ -551,12 +620,13 @@ Visual Studioインストール時に選択：
 
 ---
 
-## 24. 進行状況整理
+## 25. 変更履歴
 
-- ✅ 完了：技術選定（C# + .NET）
-- ✅ 完了：要求仕様整理
-- 🔄 進行中：詳細設計
-- ⏳ 未着手：実装、テスト、配布準備
+| 日付 | 版 | 変更内容 |
+|------|----|---------| 
+| 2026-01-04 | 1.0 | Python版から C# 版として作成 |
+| 2026-01-05 | 1.1 | UI設計変更、サーバー起動制御追加、通知削除、ブラウザ管理画面削除 |
+| 2026-01-05 | 1.2 | 以下の追加仕様を反映:<br>- CounterEditDialog: ホットキー設定機能追加<br>- CounterEditDialog: カラーピッカー方式に変更<br>- サーバー設定: 起動/停止をトグルボタンに変更<br>- サーバー起動中はポート番号変更不可<br>- アプリ起動時は画面非表示（タスクトレイのみ）<br>- タスクトレイメニュー: 「設定を保存」削除、「サーバー起動/停止」追加<br>- manager.css/js削除 |
 
 ---
 
@@ -565,7 +635,7 @@ Visual Studioインストール時に選択：
 | ライブラリ | 用途 | 必須 |
 |-----------|------|------|
 | System.Net.HttpListener | HTTPサーバー | ✅ 標準 |
-| System.Windows.Forms | NotifyIcon（トレイアイコン） | ✅ 標準 |
+| System.Windows.Forms | NotifyIcon（トレイアイコン）、ColorDialog | ✅ 標準 |
 | System.Text.Json | JSON処理 | ✅ 標準 |
 | WebSocketSharp-netstandard | WebSocket通信 | ✅ NuGet |
 
@@ -577,12 +647,14 @@ Visual Studioインストール時に選択：
 - WPF チュートリアル: https://docs.microsoft.com/ja-jp/dotnet/desktop/wpf/
 - HttpListener: https://docs.microsoft.com/ja-jp/dotnet/api/system.net.httplistener
 - RegisterHotKey API: https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-registerhotkey
+- ColorDialog: https://docs.microsoft.com/en-us/dotnet/api/system.windows.forms.colordialog
 
 ---
 
-## 変更履歴
+<div align="center">
 
-| 日付 | 版 | 変更内容 |
-|------|----|---------| 
-| 2026-01-04 | 1.0 | Python版から C# 版として作成 |
-| 2026-01-05 | 1.1 | UI設計変更、サーバー起動制御追加、通知削除、ブラウザ管理画面削除 |
+**開発中のため、機能や仕様は予告なく変更される可能性があります**
+
+Made with ❤️ for Streamers
+
+</div>

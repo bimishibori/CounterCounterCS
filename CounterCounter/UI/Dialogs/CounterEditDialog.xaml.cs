@@ -1,10 +1,10 @@
-﻿// CounterCounter/UI/CounterEditDialog.xaml.cs
+﻿// CounterCounter/UI/Dialogs/CounterEditDialog.xaml.cs
 using System.Windows;
 using CounterCounter.Models;
 using WpfMessageBox = System.Windows.MessageBox;
 using WpfButton = System.Windows.Controls.Button;
 
-namespace CounterCounter.UI
+namespace CounterCounter.UI.Dialogs
 {
     public partial class CounterEditDialog : Window
     {

@@ -1,4 +1,4 @@
-﻿// CounterCounter/UI/CounterViewModel.cs
+﻿// CounterCounter/UI/ViewModels/CounterViewModel.cs
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using CounterCounter.Core;
@@ -8,7 +8,7 @@ using WpfSolidColorBrush = System.Windows.Media.SolidColorBrush;
 using WpfColorConverter = System.Windows.Media.ColorConverter;
 using WpfColor = System.Windows.Media.Color;
 
-namespace CounterCounter.UI
+namespace CounterCounter.UI.ViewModels
 {
     public class CounterViewModel : INotifyPropertyChanged
     {
@@ -26,6 +26,7 @@ namespace CounterCounter.UI
         public string Name => Counter.Name;
         public int Value => Counter.Value;
         public string Color => Counter.Color;
+
         public WpfBrush ColorBrush
         {
             get

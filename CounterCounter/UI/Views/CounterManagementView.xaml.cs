@@ -5,11 +5,13 @@ using System.Runtime.CompilerServices;
 using System.Windows;
 using CounterCounter.Core;
 using CounterCounter.Models;
+using CounterCounter.UI.Dialogs;
 using WpfButton = System.Windows.Controls.Button;
 using WpfMessageBox = System.Windows.MessageBox;
 using WpfUserControl = System.Windows.Controls.UserControl;
 using WpfColor = System.Windows.Media.Color;
 using WpfColorConverter = System.Windows.Media.ColorConverter;
+using WpfSolidColorBrush = System.Windows.Media.SolidColorBrush;
 
 namespace CounterCounter.UI.Views
 {

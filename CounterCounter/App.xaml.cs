@@ -4,6 +4,7 @@ using System.Windows.Interop;
 using CounterCounter.Core;
 using CounterCounter.Models;
 using CounterCounter.UI;
+using CounterCounter.UI.Infrastructure;
 using WpfApp = System.Windows.Application;
 
 namespace CounterCounter
@@ -13,7 +14,7 @@ namespace CounterCounter
         private TrayIcon? _trayIcon;
         private CounterManager? _counterManager;
         private ConfigManager? _configManager;
-        private System.Windows.Window? _hiddenWindow;
+        private Window? _hiddenWindow;
         private CounterSettings? _settings;
         private MainWindow? _mainWindow;
 
@@ -29,7 +30,7 @@ namespace CounterCounter
             _counterManager = new CounterManager();
             _counterManager.LoadCounters(_settings.Counters);
 
-            _hiddenWindow = new System.Windows.Window
+            _hiddenWindow = new Window
             {
                 Width = 0,
                 Height = 0,

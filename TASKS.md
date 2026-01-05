@@ -2,7 +2,7 @@
 
 **プロジェクト名**: Counter Counter（カウンター・カウンター）  
 **技術スタック**: C# + .NET 8 + WPF  
-**最終更新日**: 2026-01-05 (セッション4 - モダンUI実装完了)
+**最終更新日**: 2026-01-05 (セッション5 - UIフォルダ整理 & 追加仕様確定)
 
 ---
 
@@ -12,11 +12,11 @@
 |---------|------|------|
 | Phase 1: 環境構築 | 100% | ✅ 完了 |
 | Phase 2: コア機能実装 | 100% | ✅ 完了 |
-| Phase 3: GUI実装 | 95% | 🔄 ほぼ完了 |
+| Phase 3: GUI実装 | 90% | 🔄 ほぼ完了 |
 | Phase 4: アニメーション | 10% | 🔄 進行中 |
 | Phase 5: EXE化・配布 | 0% | ⏳ 未着手 |
 
-**全体進捗: 90%完了** 🎉
+**全体進捗: 92%完了**
 
 ---
 
@@ -30,28 +30,73 @@
 **変更前**: タブUI、サーバー自動起動、通知あり、ブラウザ管理画面あり  
 **変更後**: サイドバーUI、サーバー手動起動、通知なし、WPF設定画面のみ
 
+### セッション5: UIフォルダ整理 + 追加仕様確定
+**フォルダ整理**:
+- `UI/Dialogs/` 新設（CounterEditDialog移動）
+- `UI/Infrastructure/` 新設（TrayIcon移動）
+- 不要ファイル削除予定（manager.css/js, index.html）
+
+**追加仕様**:
+1. CounterEditDialog: カラーピッカー & ホットキー設定機能
+2. ServerSettingsView: トグルボタン化、起動中はポート変更不可
+3. App起動: 画面非表示でタスクトレイのみ
+4. TrayIcon: メニュー変更（保存削除、サーバー起動/停止追加）
+5. 設定自動保存
+
 ---
 
 ## 🔴 最優先タスク（次回セッション）
 
-### 1. 名前空間の曖昧参照エラーの完全修正 【緊急】
-- [ ] `MainWindow.xaml.cs` の残存エラー修正
-- [ ] `CounterManagementView.xaml.cs` の残存エラー修正
-- [ ] 新規作成ファイルのエイリアス確認
-- [ ] ビルドエラー 0 達成
+### 1. CounterEditDialog の拡張実装【最優先】
+- [ ] **カラーピッカーの実装**
+  - [ ] `System.Windows.Forms.ColorDialog` の統合
+  - [ ] カラーコード（#RRGGBB）の取得・保存
+  - [ ] プリセットボタンの削除
+  - [ ] XAMLの更新
+  - [ ] コードビハインドの更新
+  
+- [ ] **ホットキー設定機能の追加**
+  - [ ] 増加キー設定UIの追加
+  - [ ] 減少キー設定UIの追加
+  - [ ] 「記録」ボタンの実装
+  - [ ] キー入力待機処理
+  - [ ] キー競合チェック機能
+  - [ ] HotkeySettings への保存処理
 
-**エラー内容**:
-```
-'Color' は、'System.Drawing.Color' と 'System.Windows.Media.Color' 間のあいまいな参照です
-'ColorConverter' は、'System.Drawing.ColorConverter' と 'System.Windows.Media.ColorConverter' 間のあいまいな参照です
-```
+### 2. ServerSettingsView の変更【最優先】
+- [ ] **トグルボタンの実装**
+  - [ ] 起動/停止ボタンを1つに統合
+  - [ ] ボタンラベルの動的変更
+  - [ ] 状態に応じたスタイル変更
+  
+- [ ] **ポート番号制御**
+  - [ ] サーバー起動中はTextBox無効化
+  - [ ] 停止中のみ編集可能
 
-**解決方法**: 必ずファイル先頭でエイリアスを定義
-```csharp
-using WpfColor = System.Windows.Media.Color;
-using WpfColorConverter = System.Windows.Media.ColorConverter;
-using WpfSolidColorBrush = System.Windows.Media.SolidColorBrush;
-```
+### 3. App.xaml.cs の修正【最優先】
+- [ ] **起動時の画面非表示**
+  - [ ] MainWindow の初期表示を非表示に
+  - [ ] タスクトレイから「設定を開く」で表示
+
+### 4. TrayIcon (Infrastructure/TrayIcon.cs) の修正【最優先】
+- [ ] **メニュー項目の変更**
+  - [ ] 「設定を保存」メニュー削除
+  - [ ] 「サーバー起動」メニュー追加
+  - [ ] 「サーバー停止」メニュー追加
+  - [ ] サーバー状態の管理・イベント連携
+
+### 5. 不要ファイルの削除【最優先】
+- [ ] `wwwroot/index.html` 削除
+- [ ] `wwwroot/css/manager.css` 削除
+- [ ] `wwwroot/js/manager.js` 削除
+- [ ] `UI/ViewModels/CounterViewModel.cs` 削除（使ってない場合）
+- [ ] `UI/Components/CounterListItem.xaml` + `.cs` 削除（使ってない場合）
+
+### 6. 設定の自動保存実装【高】
+- [ ] カウンター追加・編集・削除時に自動保存
+- [ ] サーバー設定変更時に自動保存
+- [ ] ホットキー変更時に自動保存
+- [ ] MainWindowの「設定を保存」ボタン削除（必要な場合）
 
 ---
 
@@ -72,6 +117,7 @@ using WpfSolidColorBrush = System.Windows.Media.SolidColorBrush;
 
 ### 1-4. プロジェクト構造作成
 - [x] フォルダ構造作成（Core/Server/UI/Models）
+- [x] UIフォルダの機能別整理（Dialogs/Infrastructure/Views）
 - [ ] アイコンファイル追加（`Resources/icon.ico`）
 
 ### 1-5. 基本ファイル作成
@@ -115,19 +161,21 @@ using WpfSolidColorBrush = System.Windows.Media.SolidColorBrush;
 - [x] `Core/ConfigManager.cs` 実装
   - [x] JSON読み込み・保存
 
-### 2-8. タスクトレイ実装 ✅
-- [x] `UI/TrayIcon.cs` 実装
+### 2-8. タスクトレイ実装 🔄
+- [x] `UI/Infrastructure/TrayIcon.cs` 実装（フォルダ移動完了）
   - [x] コンテキストメニュー作成
   - [x] 通知機能削除
+  - [ ] メニュー項目の変更（保存削除、サーバー起動/停止追加）
 
-### 2-9. アプリケーション統合 ✅
+### 2-9. アプリケーション統合 🔄
 - [x] `App.xaml.cs` 修正
   - [x] サーバー自動起動削除
   - [x] 終了時に設定自動保存
+  - [ ] 起動時の画面非表示
 
 ---
 
-## Phase 3: GUI実装（WPF） 【95%】🔄
+## Phase 3: GUI実装（WPF） 【90%】🔄
 
 ### 3-1. MainWindow モダンデザイン ✅
 - [x] `UI/MainWindow.xaml` 作成
@@ -141,7 +189,7 @@ using WpfSolidColorBrush = System.Windows.Media.SolidColorBrush;
   - [x] ビュー切り替え機能
   - [x] サーバー起動/停止制御
   - [x] ホットキー管理統合
-  - [ ] 名前空間の曖昧参照エラー修正（残存）
+  - [x] 名前空間の曖昧参照エラー修正
 
 ### 3-2. カウンター管理ビュー ✅
 - [x] `UI/Views/CounterManagementView.xaml` 作成
@@ -152,12 +200,14 @@ using WpfSolidColorBrush = System.Windows.Media.SolidColorBrush;
 - [x] `UI/Views/CounterManagementView.xaml.cs` 作成
   - [x] カウンター一覧表示
   - [x] 追加・編集・削除機能
-  - [ ] 名前空間の曖昧参照エラー修正（残存）
+  - [x] 名前空間の曖昧参照エラー修正
 
-### 3-3. サーバー設定ビュー ✅
+### 3-3. サーバー設定ビュー 🔄
 - [x] `UI/Views/ServerSettingsView.xaml` 作成
   - [x] サーバー起動/停止ボタン
+  - [ ] トグルボタン化
   - [x] ポート設定UI
+  - [ ] 起動中のポート変更不可
   - [x] サーバー情報表示
 
 - [x] `UI/Views/ServerSettingsView.xaml.cs` 作成
@@ -176,19 +226,30 @@ using WpfSolidColorBrush = System.Windows.Media.SolidColorBrush;
   - [x] コピー機能
   - [x] ブラウザ起動機能
 
-### 3-5. CounterEditDialog ✅
-- [x] `UI/CounterEditDialog.xaml` 作成
+### 3-5. CounterEditDialog 🔄
+- [x] `UI/Dialogs/CounterEditDialog.xaml` 作成（フォルダ移動完了）
   - [x] シンプルデザイン
   - [x] 色選択（5色プリセット）
+  - [ ] カラーピッカー化
 
-- [x] `UI/CounterEditDialog.xaml.cs` 実装
+- [x] `UI/Dialogs/CounterEditDialog.xaml.cs` 実装（フォルダ移動完了）
   - [x] 3つのコンストラクタ
   - [x] CounterName / CounterColor プロパティ
+  - [ ] カラーピッカー統合
+  - [ ] ホットキー設定機能
 
-### 3-6. 名前空間の整理 🔄
-- [x] WPF vs WinForms の衝突解決（一部）
-- [ ] Color / ColorConverter の曖昧参照解決（残存）
-- [ ] 全ファイルでエイリアス統一
+### 3-6. 名前空間の整理 ✅
+- [x] WPF vs WinForms の衝突解決
+- [x] Color / ColorConverter の曖昧参照解決
+- [x] 全ファイルでエイリアス統一
+
+### 3-7. フォルダ整理 ✅
+- [x] `UI/Dialogs/` フォルダ新設
+- [x] `UI/Infrastructure/` フォルダ新設
+- [x] CounterEditDialog 移動
+- [x] TrayIcon 移動
+- [x] 名前空間の更新
+- [x] 参照元ファイルの修正
 
 ---
 
@@ -204,7 +265,7 @@ using WpfSolidColorBrush = System.Windows.Media.SolidColorBrush;
   - [x] WebSocket接続
   - [x] リアルタイム更新
 
-### 4-2. 管理画面（使用されていない） ✅
+### 4-2. 管理画面（削除予定） ⏳
 - [x] `wwwroot/index.html` 作成（削除予定）
 - [x] `wwwroot/css/manager.css` 作成（削除予定）
 - [x] `wwwroot/js/manager.js` 作成（削除予定）
@@ -281,87 +342,75 @@ using WpfSolidColorBrush = System.Windows.Media.SolidColorBrush;
 
 ## 🐛 バグ・課題管理
 
-### 優先度: 緊急 🔥
-- ⚠️ **名前空間の曖昧参照エラーが複数残存** - ビルドに影響
-  - `MainWindow.xaml.cs` の一部
-  - `CounterManagementView.xaml.cs` の一部
-  - エイリアスの追加漏れ
+### 優先度: 最高 🔥🔥🔥
+- ⚠️ **CounterEditDialog 拡張が未実装**
+  - カラーピッカー未実装
+  - ホットキー設定機能未実装
+- ⚠️ **ServerSettingsView のトグルボタン化が未実装**
+- ⚠️ **アプリ起動時の画面非表示が未実装**
+- ⚠️ **TrayIcon のメニュー変更が未実装**
+- ⚠️ **不要ファイルの削除が未実施**
 
 ### 優先度: 高
-- ⚠️ **ホットキー設定UIが未実装** - 現在はconfig.json手動編集が必要
-- ⚠️ **アイコンが仮アイコン** - 独自アイコンの作成が必要
-- ⚠️ **サーバー起動/停止の動作確認** - 実機テストが必要
+- ⚠️ **設定の自動保存が未実装**
+- ⚠️ **サーバー起動中のポート番号変更不可が未実装**
+- ⚠️ **アイコンが仮アイコン**
+- ⚠️ **動作確認が不十分**
 
 ### 優先度: 中
-- ⚠️ **カウンター並び替え機能なし** - ドラッグ&ドロップ未実装
-- ⚠️ **アニメーション未実装** - スライドイン、パーティクル
+- ⚠️ **カウンター並び替え機能なし**
+- ⚠️ **アニメーション未実装**
 
 ### 優先度: 低
 - WebSocketSharpの警告（pragma directiveで抑制済み）
-- 使用されていないファイル（manager.html/css/js）
 
 ### 解決済み ✅
 - ✅ 単一カウンターのみ対応 → 複数カウンター対応完了
 - ✅ 設定の永続化未対応 → ConfigManager実装完了
 - ✅ グローバルホットキー未実装 → HotkeyManager実装完了
 - ✅ StaticFileProvider.ServeFileメソッド欠落 → 実装完了
-- ✅ WPF/WinForms名前空間衝突 → エイリアスで解決（一部）
+- ✅ WPF/WinForms名前空間衝突 → エイリアスで解決
 - ✅ サーバー自動起動 → 手動起動に変更
 - ✅ カウンター値変更通知 → 削除
 - ✅ ブラウザ管理画面 → 削除
+- ✅ UIフォルダの構造が散らかっていた → 機能別に整理完了
+- ✅ 名前空間の曖昧参照エラー → 完全修正完了
 
 ---
 
-## 📝 メモ・TODO
+## 📝 実装時の注意点
 
-### 実装時の注意点
 - [x] グローバルホットキーは管理者権限不要で動作
 - [x] WebSocketの自動再接続機能を実装済み
 - [x] ポート番号の衝突対策を実装済み
 - [x] OBS表示画面の背景透過を確認済み
 - [x] WPFウィンドウを完全に非表示にする（タスクバーに出さない）
 - [x] 設定の自動保存（終了時）
-- [ ] 名前空間の曖昧参照エラーの完全修正（最優先）
-
-### C#特有の注意点
-- [x] `HttpListener` は管理者権限が必要な場合あり（localhost例外設定）
-- [x] WPF + NotifyIcon の組み合わせ（System.Windows.Forms参照必要）
-- [x] `System.Drawing` と `System.Windows.Media` の名前空間衝突に注意
-- [ ] 単一ファイル発行時の埋め込みリソースパス問題
-- [x] `RegisterHotKey` の HWnd 取得方法（隠しウィンドウ使用）
-
-### リファクタリング完了事項 ✅
-- [x] WebServer.cs を分割（300行→220行）
-- [x] HTML/CSS/JSの外部ファイル化
-- [x] 名前空間の整理（Core/Server/UI/Models）
-- [x] 名前空間の衝突解決（WPF vs WinForms）- 一部
-- [x] 単一カウンター → 複数カウンター対応
-- [x] タブUI → サイドバーナビゲーション
-- [x] サーバー自動起動 → 手動起動
-
-### 将来的な拡張候補
-- カウンター並び替え（ドラッグ&ドロップ）
-- カスタムテーマ機能
-- 効果音連動
-- プラグインシステム
-- Twitch / YouTube Chat連携
+- [ ] カラーピッカーの統合（ColorDialog使用）
+- [ ] ホットキー設定UIの実装（キー入力待機処理）
+- [ ] トグルボタンの実装（サーバー起動/停止）
+- [ ] 起動時の画面非表示処理
+- [ ] タスクトレイメニューの変更
 
 ---
 
 ## 🎯 現在の作業
 
-**現在のフェーズ**: Phase 3 - GUI実装（95%完了）  
-**次のタスク**: 名前空間の曖昧参照エラーの完全修正（最優先）
+**現在のフェーズ**: Phase 3 - GUI実装（90%完了）  
+**次のタスク**: CounterEditDialog 拡張実装（最優先）
 
 **最近の成果**: 
-- ✅ モダンUI設計の全面実装完了！
-- ✅ サイドバーナビゲーション実装完了！
-- ✅ カウンター管理ビュー実装完了（ホットキー表示機能付き）！
-- ✅ サーバー設定ビュー実装完了（手動起動対応）！
-- ✅ 接続情報ビュー実装完了（URL操作ボタン付き）！
-- ✅ App.xaml.cs簡略化完了！
-- ✅ TrayIcon.cs簡略化完了（通知削除）！
-- ⚠️ 名前空間の曖昧参照エラーが複数残存（要修正）
+- ✅ 名前空間の曖昧参照エラー完全修正！
+- ✅ UIフォルダの機能別整理完了！
+- ✅ 追加仕様の確定・要求仕様書更新完了！
+
+**次回セッションの最優先タスク**:
+1. CounterEditDialog: カラーピッカー & ホットキー設定実装
+2. ServerSettingsView: トグルボタン化
+3. App.xaml.cs: 起動時画面非表示
+4. TrayIcon: メニュー変更
+5. 不要ファイル削除
+6. 設定自動保存実装
 
 ---
 
@@ -369,14 +418,20 @@ using WpfSolidColorBrush = System.Windows.Media.SolidColorBrush;
 
 | マイルストーン | 目標日 | 状態 |
 |---------------|--------|------|
-| プロトタイプ完成（コア機能のみ） | - | ✅ 完了 |
-| GUI完成（WPF設定画面） | - | 🔄 95%完了 |
+| プロトタイプ完成 | - | ✅ 完了 |
+| GUI完成（WPF設定画面） | - | 🔄 90%完了 |
 | 複数カウンター対応 | - | ✅ 完了 |
 | グローバルホットキー実装 | - | ✅ 完了 |
 | 設定永続化実装 | - | ✅ 完了 |
 | モダンUI実装 | - | ✅ 完了 |
-| 名前空間の曖昧参照エラー修正 | 次回 | ⏳ 最優先 |
-| ホットキー設定UI実装 | 未定 | ⏳ 未着手 |
+| UIフォルダ整理 | - | ✅ 完了 |
+| 名前空間エラー修正 | - | ✅ 完了 |
+| CounterEditDialog 拡張 | 次回 | ⏳ 最優先 |
+| サーバー設定トグルボタン化 | 次回 | ⏳ 最優先 |
+| アプリ起動時画面非表示 | 次回 | ⏳ 最優先 |
+| TrayIconメニュー変更 | 次回 | ⏳ 最優先 |
+| 不要ファイル削除 | 次回 | ⏳ 最優先 |
+| 設定自動保存実装 | 次回 | ⏳ 高優先度 |
 | アニメーション実装完了 | 未定 | ⏳ 未着手 |
 | 初回リリース (v0.1.0) | 未定 | ⏳ 未着手 |
 
@@ -402,6 +457,24 @@ using WpfSolidColorBrush = System.Windows.Media.SolidColorBrush;
 using WinForms = System.Windows.Forms;
 ```
 
+### ColorDialog 使用例
+```csharp
+using WinForms = System.Windows.Forms;
+
+private void SelectColor_Click(object sender, RoutedEventArgs e)
+{
+    var colorDialog = new WinForms.ColorDialog();
+    colorDialog.FullOpen = true;
+    
+    if (colorDialog.ShowDialog() == WinForms.DialogResult.OK)
+    {
+        var winColor = colorDialog.Color;
+        string hexColor = $"#{winColor.R:X2}{winColor.G:X2}{winColor.B:X2}";
+        _selectedColor = hexColor;
+    }
+}
+```
+
 ### 単一ファイル発行コマンド
 ```bash
 dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=true
@@ -409,55 +482,5 @@ dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=
 
 ---
 
-## 📊 セッション履歴
-
-### セッション1 (2026-01-04)
-- プロジェクト作成
-- 基本機能実装完了
-- タスクトレイ常駐動作確認
-
-### セッション2 (2026-01-04)
-- WebServer.csリファクタリング（300行→220行）
-- HTML/CSS/JSの外部ファイル化
-- 名前空間の整理（Core/Server/UI）
-- WPF設定画面実装
-- 名前空間の衝突解決
-- 全体進捗60%達成
-
-### セッション3 (2026-01-04)
-- **重大な設計変更**: 単一カウンター → 複数カウンター対応
-- データモデル作成（Counter, HotkeySettings, CounterSettings）
-- CounterManager実装（複数カウンター管理）
-- HotkeyManager全面書き換え（動的登録対応）
-- ConfigManager実装（JSON永続化）
-- WebServer/API/WebSocket全面改修
-- MainWindow大幅拡張（カウンター管理UI）
-- CounterEditDialog実装
-- Web UI複数カウンター対応
-- 全エラー・警告の修正
-- 全体進捗85%達成
-
-### セッション4 (2026-01-05)
-- **UI設計の全面刷新**: タブ → サイドバーナビゲーション
-- **サーバー起動方式の変更**: 自動起動 → 手動起動
-- **機能削除**: カウンター値変更通知、ブラウザ管理画面
-- **機能追加**: ホットキー表示、OBS URL操作ボタン
-- モダンデザイン実装:
-  - MainWindow: サイドバー + グラデーションボタン
-  - CounterManagementView: カード型UI + ホットキー表示
-  - ServerSettingsView: サーバー起動/停止制御
-  - ConnectionInfoView: URL表示・コピー・ブラウザ起動
-- App.xaml.csの簡略化（サーバー自動起動削除）
-- TrayIcon.csの簡略化（通知削除）
-- 要求仕様書の更新（REQUIREMENTS.md v1.1）
-- 全体進捗90%達成
-- **課題**: 名前空間の曖昧参照エラーが複数残存
-
----
-
-**更新履歴**
-- 2026-01-04: C# 版としてタスク管理表作成（セッション1）
-- 2026-01-04: リファクタリング完了、WPF実装完了（セッション2）
-- 2026-01-04: 複数カウンター対応完了、85%達成（セッション3）
-- 2026-01-05: モダンUI実装完了、90%達成（セッション4）
-  - 次回最優先: 名前空間の曖昧参照エラーの完全修正
+**最終更新日**: 2026-01-05  
+**次回の最優先タスク**: CounterEditDialog 拡張実装

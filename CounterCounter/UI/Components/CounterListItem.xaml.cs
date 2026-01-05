@@ -1,9 +1,11 @@
-﻿// CounterCounter/UI/CounterListItem.xaml.cs
+﻿// CounterCounter/UI/Components/CounterListItem.xaml.cs
 using System.Windows;
+using CounterCounter.UI.ViewModels;
+using CounterCounter.UI.Dialogs;
 using WpfUserControl = System.Windows.Controls.UserControl;
 using WpfMessageBox = System.Windows.MessageBox;
 
-namespace CounterCounter.UI
+namespace CounterCounter.UI.Components
 {
     public partial class CounterListItem : WpfUserControl
     {

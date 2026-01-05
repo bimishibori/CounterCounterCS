@@ -1,10 +1,10 @@
-﻿// CounterCounter/UI/TrayIcon.cs
+﻿// CounterCounter/UI/System/TrayIcon.cs
 using CounterCounter.Core;
 using CounterCounter.Models;
 using WinForms = System.Windows.Forms;
 using WpfClipboard = System.Windows.Clipboard;
 
-namespace CounterCounter.UI
+namespace CounterCounter.UI.Infrastructure
 {
     public class TrayIcon : IDisposable
     {
@@ -55,7 +55,7 @@ namespace CounterCounter.UI
 
         private void Exit(object? sender, EventArgs e)
         {
-            System.Windows.Application.Current.Shutdown();
+            global::System.Windows.Application.Current.Shutdown();
         }
 
         public void Dispose()

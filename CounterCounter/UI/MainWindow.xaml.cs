@@ -6,6 +6,7 @@ using CounterCounter.Core;
 using CounterCounter.Models;
 using CounterCounter.Server;
 using CounterCounter.UI.Views;
+using CounterCounter.UI.Dialogs;
 using WpfButton = System.Windows.Controls.Button;
 using WpfMessageBox = System.Windows.MessageBox;
 using WpfColor = System.Windows.Media.Color;
