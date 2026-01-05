@@ -68,6 +68,50 @@ namespace CounterCounter.UI
             Hide();
         }
 
+        public void StartServerFromTray()
+        {
+            if (_isServerRunning)
+            {
+                return;
+            }
+
+            try
+            {
+                StartServer(_httpPort);
+                WpfMessageBox.Show(
+                    $"サーバーを起動しました。\nHTTP: {_httpPort}\nWebSocket: {_wsPort}",
+                    "起動完了",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information
+                );
+            }
+            catch (Exception ex)
+            {
+                WpfMessageBox.Show(
+                    $"サーバーの起動に失敗しました: {ex.Message}",
+                    "エラー",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
+            }
+        }
+
+        public void StopServerFromTray()
+        {
+            if (!_isServerRunning)
+            {
+                return;
+            }
+
+            StopServer();
+            WpfMessageBox.Show(
+                "サーバーを停止しました。",
+                "停止完了",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information
+            );
+        }
+
         private void NavCounters_Click(object sender, RoutedEventArgs e)
         {
             ShowCountersView();
@@ -134,29 +178,16 @@ namespace CounterCounter.UI
             {
                 _httpPort = port;
                 _wsPort = port + 1;
+                StartServer(port);
 
-                _webServer = new WebServer(_counterManager);
-                Task.Run(async () => await _webServer.StartAsync(_httpPort));
+                _serverSettingsView?.UpdateServerStatus(true, _httpPort);
 
-                _wsServer = new WebSocketServer(_counterManager, _httpPort);
-                _wsServer.Start();
-
-                _hotkeyManager = new HotkeyManager();
-                _hotkeyManager.Initialize(_hwnd);
-                RegisterHotkeys();
-
-                _isServerRunning = true;
-                UpdateServerStatus();
-
-                Dispatcher.Invoke(() =>
-                {
-                    WpfMessageBox.Show(
-                        $"サーバーを起動しました。\nHTTP: {_httpPort}\nWebSocket: {_wsPort}",
-                        "起動完了",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Information
-                    );
-                });
+                WpfMessageBox.Show(
+                    $"サーバーを起動しました。\nHTTP: {_httpPort}\nWebSocket: {_wsPort}",
+                    "起動完了",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information
+                );
             }
             catch (Exception ex)
             {
@@ -172,29 +203,9 @@ namespace CounterCounter.UI
                 return;
             }
 
-            var result = WpfMessageBox.Show(
-                "サーバーを停止しますか？\nOBSからの接続が切断されます。",
-                "確認",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Question
-            );
-
-            if (result == MessageBoxResult.Yes)
-            {
-                _hotkeyManager?.Dispose();
-                _hotkeyManager = null;
-
-                _wsServer?.Dispose();
-                _wsServer = null;
-
-                _webServer?.Dispose();
-                _webServer = null;
-
-                _isServerRunning = false;
-                UpdateServerStatus();
-
-                WpfMessageBox.Show("サーバーを停止しました。", "停止完了", MessageBoxButton.OK, MessageBoxImage.Information);
-            }
+            StopServer();
+            _serverSettingsView?.UpdateServerStatus(false, _httpPort);
+            WpfMessageBox.Show("サーバーを停止しました。", "停止完了", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         private void OnSaveSettingsRequested(object? sender, int port)
@@ -209,6 +220,49 @@ namespace CounterCounter.UI
                 MessageBoxButton.OK,
                 MessageBoxImage.Information
             );
+        }
+
+        private void StartServer(int port)
+        {
+            _webServer = new WebServer(_counterManager);
+            Task.Run(async () => await _webServer.StartAsync(port));
+
+            _wsServer = new WebSocketServer(_counterManager, port);
+            _wsServer.Start();
+
+            _hotkeyManager = new HotkeyManager();
+            _hotkeyManager.Initialize(_hwnd);
+            RegisterHotkeys();
+
+            _isServerRunning = true;
+            _httpPort = port;
+            _wsPort = port + 1;
+
+            UpdateServerStatus();
+            UpdateTrayIcon();
+        }
+
+        private void StopServer()
+        {
+            _hotkeyManager?.Dispose();
+            _hotkeyManager = null;
+
+            _wsServer?.Dispose();
+            _wsServer = null;
+
+            _webServer?.Dispose();
+            _webServer = null;
+
+            _isServerRunning = false;
+
+            UpdateServerStatus();
+            UpdateTrayIcon();
+        }
+
+        private void UpdateTrayIcon()
+        {
+            var app = System.Windows.Application.Current as App;
+            app?.UpdateTrayIconServerStatus(_isServerRunning, _httpPort);
         }
 
         private void RegisterHotkeys()

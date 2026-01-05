@@ -6,12 +6,10 @@ using System.Windows;
 using CounterCounter.Core;
 using CounterCounter.Models;
 using CounterCounter.UI.Dialogs;
-using WpfButton = System.Windows.Controls.Button;
 using WpfMessageBox = System.Windows.MessageBox;
 using WpfUserControl = System.Windows.Controls.UserControl;
 using WpfColor = System.Windows.Media.Color;
 using WpfColorConverter = System.Windows.Media.ColorConverter;
-using WpfSolidColorBrush = System.Windows.Media.SolidColorBrush;
 
 namespace CounterCounter.UI.Views
 {
@@ -80,11 +78,23 @@ namespace CounterCounter.UI.Views
             }
         }
 
-        private void EditCounter_Click(object sender, RoutedEventArgs e)
+        private void CounterCard_IncrementRequested(object? sender, string counterId)
         {
-            if (sender is not WpfButton button || button.Tag is not string counterId)
-                return;
+            _counterManager.Increment(counterId);
+        }
 
+        private void CounterCard_DecrementRequested(object? sender, string counterId)
+        {
+            _counterManager.Decrement(counterId);
+        }
+
+        private void CounterCard_ResetRequested(object? sender, string counterId)
+        {
+            _counterManager.Reset(counterId);
+        }
+
+        private void CounterCard_EditRequested(object? sender, string counterId)
+        {
             var counter = _counterManager.GetCounter(counterId);
             if (counter == null)
                 return;
@@ -97,11 +107,8 @@ namespace CounterCounter.UI.Views
             }
         }
 
-        private void DeleteCounter_Click(object sender, RoutedEventArgs e)
+        private void CounterCard_DeleteRequested(object? sender, string counterId)
         {
-            if (sender is not WpfButton button || button.Tag is not string counterId)
-                return;
-
             var counter = _counterManager.GetCounter(counterId);
             if (counter == null)
                 return;
@@ -118,30 +125,6 @@ namespace CounterCounter.UI.Views
                 _counterManager.RemoveCounter(counterId);
                 RefreshCounterList();
             }
-        }
-
-        private void IncrementCounter_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is not WpfButton button || button.Tag is not string counterId)
-                return;
-
-            _counterManager.Increment(counterId);
-        }
-
-        private void DecrementCounter_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is not WpfButton button || button.Tag is not string counterId)
-                return;
-
-            _counterManager.Decrement(counterId);
-        }
-
-        private void ResetCounter_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is not WpfButton button || button.Tag is not string counterId)
-                return;
-
-            _counterManager.Reset(counterId);
         }
     }
 

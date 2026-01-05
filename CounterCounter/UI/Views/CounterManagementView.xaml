@@ -1,6 +1,7 @@
 ﻿<UserControl x:Class="CounterCounter.UI.Views.CounterManagementView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:components="clr-namespace:CounterCounter.UI.Components"
              Background="#0f0f0f">
 
     <UserControl.Resources>
@@ -43,23 +44,6 @@
                 </Setter.Value>
             </Setter>
         </Style>
-
-        <Style x:Key="SmallButton" TargetType="Button" BasedOn="{StaticResource ModernButton}">
-            <Setter Property="Padding" Value="10,5"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="MinWidth" Value="50"/>
-        </Style>
-
-        <Style x:Key="DangerButton" TargetType="Button" BasedOn="{StaticResource SmallButton}">
-            <Setter Property="Background">
-                <Setter.Value>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                        <GradientStop Color="#ff4757" Offset="0"/>
-                        <GradientStop Color="#ff1744" Offset="1"/>
-                    </LinearGradientBrush>
-                </Setter.Value>
-            </Setter>
-        </Style>
     </UserControl.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto">
@@ -72,46 +56,14 @@
             <ItemsControl x:Name="CountersListBox">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <Border Background="#1a1a1a" CornerRadius="12" Padding="25" Margin="0,0,0,15">
-                            <Border.Effect>
-                                <DropShadowEffect Color="Black" BlurRadius="20" ShadowDepth="5" Opacity="0.5"/>
-                            </Border.Effect>
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-
-                                <Ellipse Width="40" Height="40" Grid.Column="0" Margin="0,0,20,0">
-                                    <Ellipse.Fill>
-                                        <SolidColorBrush Color="{Binding ColorValue}"/>
-                                    </Ellipse.Fill>
-                                    <Ellipse.Effect>
-                                        <DropShadowEffect Color="{Binding ColorValue}" BlurRadius="15" ShadowDepth="0" Opacity="0.8"/>
-                                    </Ellipse.Effect>
-                                </Ellipse>
-
-                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                    <TextBlock Text="{Binding Name}" FontSize="20" FontWeight="Bold" Foreground="#e0e0e0"/>
-                                    <TextBlock Text="{Binding HotkeyText}" FontSize="12" Foreground="#808080" Margin="0,2,0,0"/>
-                                    <TextBlock Text="{Binding Value}" FontSize="48" FontWeight="Bold" Foreground="#00d4ff" Margin="0,10,0,0"/>
-                                </StackPanel>
-
-                                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                                    <Button Content="+" Click="IncrementCounter_Click" Tag="{Binding Id}" 
-                                            Style="{StaticResource SmallButton}" Margin="5"/>
-                                    <Button Content="-" Click="DecrementCounter_Click" Tag="{Binding Id}" 
-                                            Style="{StaticResource SmallButton}" Margin="5"/>
-                                    <Button Content="リセット" Click="ResetCounter_Click" Tag="{Binding Id}" 
-                                            Style="{StaticResource DangerButton}" Margin="5"/>
-                                    <Button Content="編集" Click="EditCounter_Click" Tag="{Binding Id}" 
-                                            Style="{StaticResource SmallButton}" Margin="5"/>
-                                    <Button Content="削除" Click="DeleteCounter_Click" Tag="{Binding Id}" 
-                                            Style="{StaticResource DangerButton}" Margin="5"/>
-                                </StackPanel>
-                            </Grid>
-                        </Border>
+                        <components:CounterCard 
+                            DataContext="{Binding}"
+                            CounterId="{Binding Id}"
+                            IncrementRequested="CounterCard_IncrementRequested"
+                            DecrementRequested="CounterCard_DecrementRequested"
+                            ResetRequested="CounterCard_ResetRequested"
+                            EditRequested="CounterCard_EditRequested"
+                            DeleteRequested="CounterCard_DeleteRequested"/>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>

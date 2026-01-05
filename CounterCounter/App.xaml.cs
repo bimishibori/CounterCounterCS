@@ -47,8 +47,13 @@ namespace CounterCounter
             _mainWindow = new MainWindow(_counterManager, _configManager, _settings);
             _mainWindow.SetHwnd(hwnd);
 
+            _mainWindow.Show();
+            _mainWindow.Activate();
+
             _trayIcon = new TrayIcon(_counterManager, _configManager, _settings);
             _trayIcon.ShowSettingsRequested += OnShowSettingsRequested;
+            _trayIcon.ServerStartRequested += OnServerStartRequested;
+            _trayIcon.ServerStopRequested += OnServerStopRequested;
         }
 
         private void OnShowSettingsRequested(object? sender, EventArgs e)
@@ -60,6 +65,27 @@ namespace CounterCounter
                     _mainWindow.ShowWindow();
                 }
             });
+        }
+
+        private void OnServerStartRequested(object? sender, EventArgs e)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                _mainWindow?.StartServerFromTray();
+            });
+        }
+
+        private void OnServerStopRequested(object? sender, EventArgs e)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                _mainWindow?.StopServerFromTray();
+            });
+        }
+
+        public void UpdateTrayIconServerStatus(bool isRunning, int httpPort)
+        {
+            _trayIcon?.UpdateServerStatus(isRunning, httpPort);
         }
 
         protected override void OnExit(ExitEventArgs e)
