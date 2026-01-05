@@ -6,7 +6,6 @@ using CounterCounter.Core;
 using CounterCounter.Models;
 using CounterCounter.Server;
 using CounterCounter.UI.Views;
-using CounterCounter.UI.Dialogs;
 using WpfButton = System.Windows.Controls.Button;
 using WpfMessageBox = System.Windows.MessageBox;
 using WpfColor = System.Windows.Media.Color;
@@ -144,7 +143,11 @@ namespace CounterCounter.UI
 
         private void ShowCountersView()
         {
-            _counterManagementView ??= new CounterManagementView(_counterManager, _settings.Hotkeys);
+            _counterManagementView = new CounterManagementView(
+                _counterManager,
+                _settings.Hotkeys,
+                _configManager,
+                _settings);
             ContentArea.Children.Clear();
             ContentArea.Children.Add(_counterManagementView);
         }
@@ -314,6 +317,10 @@ namespace CounterCounter.UI
 
         public void Cleanup()
         {
+            _settings.Counters = _counterManager.GetAllCounters();
+            _settings.Hotkeys = _settings.Hotkeys;
+            _configManager.Save(_settings);
+
             _hotkeyManager?.Dispose();
             _wsServer?.Dispose();
             _webServer?.Dispose();

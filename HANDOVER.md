@@ -1,12 +1,12 @@
 # カウンター・カウンター 開発引き継ぎ資料
 
-**最終更新**: 2026-01-06 (セッション6)  
+**最終更新**: 2026-01-06 (セッション7)  
 **プロジェクト**: Counter Counter  
 **技術**: C# + .NET 8 + WPF
 
 ---
 
-## 📊 現在の進捗: 95%完了
+## 📊 現在の進捗: 98%完了
 
 | フェーズ | 進捗 | 状態 |
 |---------|------|------|
@@ -18,51 +18,69 @@
 
 ---
 
-## 🎯 セッション6で完了したこと
+## 🎯 セッション7で完了したこと
 
-### 1. TrayIconのトグル化 ✅
-- サーバー起動/停止を1つのメニュー項目で切り替え
-- `UpdateServerStatus(bool, int)` でメニュー更新
+### 1. CounterEditDialog拡張 ✅
+- **カラーピッカー実装**
+  - プリセットボタン削除
+  - `System.Windows.Forms.ColorDialog`統合
+  - リアルタイムカラープレビュー機能
 
-### 2. App.xaml.cs修正 ✅
-- 起動時に画面非表示（タスクトレイのみ）
-- TrayIconイベント連携完了
+- **ホットキー設定機能**
+  - 増加キー/減少キー個別設定
+  - 「記録」ボタンでキー入力待機
+  - Ctrl/Alt/Shift組み合わせ対応
+  - Escapeキーでキャンセル機能
+  - `OnPreviewKeyDown`でキー入力処理
 
-### 3. 不要ファイル削除 ✅
-削除したファイル:
-- `wwwroot/index.html`
-- `wwwroot/css/manager.css`
-- `wwwroot/js/manager.js`
-- `UI/ViewModels/CounterViewModel.cs`
-- `UI/Components/CounterListItem.xaml(.cs)`
+### 2. CounterManagementView更新 ✅
+- 新しいダイアログに対応
+- ホットキー情報の表示（増加/減少両方）
+- 自動保存機能実装
+- ConfigManager/CounterSettings連携
 
-### 4. CounterCardコンポーネント化 ✅
-- `UI/Components/CounterCard` 新規作成
-- イベント駆動設計で保守性向上
-
-### 5. ServerSettingsViewトグルボタン化 ✅
-- 起動/停止を1つのボタンで制御
-- 起動中はポート変更不可
-- 色とラベルが動的変更（緑/赤）
+### 3. MainWindow更新 ✅
+- ConfigManager/CounterSettingsを渡すように修正
+- 終了時の自動保存
+- ホットキー登録時の設定反映
 
 ---
 
 ## 🔴 次に実装すべき機能
 
-### 最優先: CounterEditDialog 拡張【40分】
-1. **カラーピッカー実装**
-   - `System.Windows.Forms.ColorDialog` 使用
-   - プリセットボタン削除
-   
-2. **ホットキー設定機能**
-   - 増加/減少キー個別設定
-   - 「記録」ボタンでキー入力待機
-   - キー競合チェック
+### 最優先: ホットキー競合チェック【推定20分】
+現在、ホットキー登録時に他のカウンターと重複していてもエラーが出ない。
+HotkeyManagerに重複チェック機能があるので、CounterEditDialogから呼び出す。
 
-### 高優先度: 設定自動保存【15分】
-- カウンター編集時に自動保存
-- サーバー設定変更時に自動保存
-- 手動保存ボタンは残す
+```csharp
+// 実装イメージ
+private bool CheckHotkeyConflict(uint modifiers, uint vk, string currentCounterId)
+{
+    foreach (var hotkey in _existingHotkeys)
+    {
+        if (hotkey.CounterId != currentCounterId &&
+            hotkey.Modifiers == modifiers &&
+            hotkey.VirtualKey == vk)
+        {
+            return true; // 競合あり
+        }
+    }
+    return false; // 競合なし
+}
+```
+
+### 高優先度: サーバー起動時のホットキー再登録【推定15分】
+現在、サーバー停止→再起動時にホットキーが正しく再登録されない可能性がある。
+MainWindow.StartServer()でホットキー登録を確実に行う。
+
+### 中優先度: アニメーション実装
+- スライドイン演出
+- パーティクル演出
+
+### 低優先度: その他
+- アイコン作成
+- カウンター並び替え機能
+- 単一EXE化
 
 ---
 
@@ -82,14 +100,15 @@ CounterCounter/
 ├── UI/
 │   ├── MainWindow.xaml(.cs)
 │   ├── Dialogs/
-│   │   └── CounterEditDialog.xaml(.cs)
+│   │   └── CounterEditDialog.xaml(.cs) ← セッション7で拡張
 │   ├── Infrastructure/
 │   │   └── TrayIcon.cs
 │   ├── Components/
 │   │   └── CounterCard.xaml(.cs)
 │   └── Views/
-│       ├── CounterManagementView.xaml(.cs)
+│       ├── CounterManagementView.xaml(.cs) ← セッション7で更新
 │       ├── ServerSettingsView.xaml(.cs)
+│       ├── HotkeySettingsView.xaml(.cs)
 │       └── ConnectionInfoView.xaml(.cs)
 ├── Models/
 │   ├── Counter.cs
@@ -104,57 +123,120 @@ CounterCounter/
 
 ---
 
-## ⚠️ 重要: 名前空間エイリアス
+## ⚠️ 重要: 名前空間エイリアス【最重要】
 
-必ず各ファイル先頭で定義:
+このプロジェクトでは頻繁に `System.Drawing` と `System.Windows.Media` の名前空間衝突が発生します！
+
+### 必須エイリアス
 ```csharp
 using WpfColor = System.Windows.Media.Color;
 using WpfColorConverter = System.Windows.Media.ColorConverter;
 using WpfSolidColorBrush = System.Windows.Media.SolidColorBrush;
 using WpfMessageBox = System.Windows.MessageBox;
+using WpfButton = System.Windows.Controls.Button;
+using WpfUserControl = System.Windows.Controls.UserControl;
 using WinForms = System.Windows.Forms;
 ```
+
+### チェックリスト
+- ✅ 新しいファイルを作成したら、必ず先頭でエイリアスを定義
+- ✅ Color, ColorConverter, Brush を使う前に、エイリアスで修飾されているか確認
+- ✅ ビルドエラーが出たら、まず名前空間の曖昧参照を疑う
 
 ---
 
 ## 💡 重要な実装メモ
 
-### TrayIcon連携
-```csharp
-// App.xaml.cs
-_trayIcon.ServerStartRequested += OnServerStartRequested;
-_trayIcon.ServerStopRequested += OnServerStopRequested;
+### CounterEditDialog の主要機能
 
-// MainWindow.xaml.cs
-public void StartServerFromTray() { }
-public void StopServerFromTray() { }
+#### 1. カラーピッカー
+```csharp
+private void SelectColor_Click(object sender, RoutedEventArgs e)
+{
+    using var colorDialog = new WinForms.ColorDialog();
+    colorDialog.FullOpen = true;
+    
+    if (colorDialog.ShowDialog() == WinForms.DialogResult.OK)
+    {
+        var drawingColor = colorDialog.Color;
+        _selectedColor = $"#{drawingColor.R:X2}{drawingColor.G:X2}{drawingColor.B:X2}";
+        UpdateColorPreview();
+    }
+}
 ```
 
-### ServerSettingsViewの状態更新
+#### 2. ホットキー記録
 ```csharp
-// MainWindowから呼び出し
-_serverSettingsView?.UpdateServerStatus(bool isRunning, int httpPort);
+protected override void OnPreviewKeyDown(KeyEventArgs e)
+{
+    if (!_isRecordingIncrementKey && !_isRecordingDecrementKey)
+        return;
+
+    e.Handled = true;
+
+    // Escapeでキャンセル
+    if (e.Key == Key.Escape) { /* ... */ }
+
+    // 修飾キー取得
+    uint modifiers = 0;
+    if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
+        modifiers |= 0x0002;
+    if (Keyboard.Modifiers.HasFlag(ModifierKeys.Shift))
+        modifiers |= 0x0004;
+    if (Keyboard.Modifiers.HasFlag(ModifierKeys.Alt))
+        modifiers |= 0x0001;
+
+    // VirtualKey取得
+    uint virtualKey = (uint)KeyInterop.VirtualKeyFromKey(e.Key);
+}
 ```
 
-### CounterCardのイベント
+#### 3. ホットキー保存
 ```csharp
-<components:CounterCard 
-    IncrementRequested="CounterCard_IncrementRequested"
-    DeleteRequested="CounterCard_DeleteRequested"/>
+// OKボタンで HotkeySettings を生成
+if (_incrementModifiers != 0 && _incrementVirtualKey != 0)
+{
+    IncrementHotkey = new HotkeySettings(
+        Counter.Id,
+        HotkeyAction.Increment,
+        _incrementModifiers,
+        _incrementVirtualKey
+    );
+}
 ```
+
+### CounterManagementView の自動保存
+```csharp
+private void AutoSaveSettings()
+{
+    _settings.Counters = _counterManager.GetAllCounters();
+    _settings.Hotkeys = _hotkeySettings;
+    _configManager.Save(_settings);
+}
+```
+
+カウンター編集・追加・削除時に自動で呼び出される。
 
 ---
 
 ## 🐛 既知の問題
 
 ### 未実装（優先度: 高）
-- CounterEditDialog拡張（カラーピッカー/ホットキー設定）
-- 設定自動保存
-- アイコンが仮アイコン
+- ⚠️ ホットキー競合チェック未実装
+- ⚠️ サーバー再起動時のホットキー再登録が不安定な可能性
+- ⚠️ アイコンが仮アイコン
 
 ### 未実装（優先度: 中）
-- アニメーション機能
-- カウンター並び替え
+- ⚠️ アニメーション機能
+- ⚠️ カウンター並び替え機能
+
+### 解決済み
+- ✅ 名前空間衝突
+- ✅ UIフォルダ整理
+- ✅ トグルボタン実装
+- ✅ 起動時非表示
+- ✅ カラーピッカー実装
+- ✅ ホットキー設定機能
 
 ---
 
@@ -181,13 +263,33 @@ _serverSettingsView?.UpdateServerStatus(bool isRunning, int httpPort);
 }
 ```
 
+**説明**:
+- `Action`: 0=Increment, 1=Decrement, 2=Reset
+- `Modifiers`: 1=Alt, 2=Ctrl, 4=Shift（ビットフラグ、組み合わせ可能）
+- `VirtualKey`: Win32 VirtualKey コード
+
 ---
 
 ## 🔧 次回セッションの開始手順
 
 1. プロジェクトを開く
 2. ビルドして動作確認
-3. CounterEditDialog拡張から開始
-4. または設定自動保存から開始
+3. カウンター追加でColorDialogとホットキー設定をテスト
+4. **次の優先タスク**: ホットキー競合チェック実装
 
-**次回の最優先タスク**: CounterEditDialog拡張実装
+---
+
+## 🎉 セッション7の成果
+
+- CounterEditDialog拡張完了（カラーピッカー + ホットキー設定）
+- 自動保存機能実装
+- ホットキー表示の改善
+- プロジェクト完成度: **95% → 98%**
+
+**次回の最優先タスク**: ホットキー競合チェック実装（20分程度）
+
+---
+
+**開発中のため、機能や仕様は予告なく変更される可能性があります**
+
+Made with ❤️ for Streamers

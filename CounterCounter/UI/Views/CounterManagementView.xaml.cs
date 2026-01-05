@@ -17,13 +17,21 @@ namespace CounterCounter.UI.Views
     {
         private readonly CounterManager _counterManager;
         private readonly List<HotkeySettings> _hotkeySettings;
+        private readonly ConfigManager _configManager;
+        private readonly CounterSettings _settings;
         private ObservableCollection<CounterDisplayModel> _counters;
 
-        public CounterManagementView(CounterManager counterManager, List<HotkeySettings> hotkeySettings)
+        public CounterManagementView(
+            CounterManager counterManager,
+            List<HotkeySettings> hotkeySettings,
+            ConfigManager configManager,
+            CounterSettings settings)
         {
             InitializeComponent();
             _counterManager = counterManager;
             _hotkeySettings = hotkeySettings;
+            _configManager = configManager;
+            _settings = settings;
             _counters = new ObservableCollection<CounterDisplayModel>();
 
             _counterManager.CounterChanged += OnCounterChanged;
@@ -42,13 +50,23 @@ namespace CounterCounter.UI.Views
 
             foreach (var counter in counters)
             {
-                var hotkey = _hotkeySettings.FirstOrDefault(h =>
+                var incrementHotkey = _hotkeySettings.FirstOrDefault(h =>
                     h.CounterId == counter.Id && h.Action == HotkeyAction.Increment);
+                var decrementHotkey = _hotkeySettings.FirstOrDefault(h =>
+                    h.CounterId == counter.Id && h.Action == HotkeyAction.Decrement);
 
                 string hotkeyText = "ショートカット: ";
-                if (hotkey != null)
+                if (incrementHotkey != null && decrementHotkey != null)
                 {
-                    hotkeyText += $"[{hotkey.GetDisplayText()}] で増加";
+                    hotkeyText += $"増加[{incrementHotkey.GetDisplayText()}] 減少[{decrementHotkey.GetDisplayText()}]";
+                }
+                else if (incrementHotkey != null)
+                {
+                    hotkeyText += $"増加[{incrementHotkey.GetDisplayText()}]";
+                }
+                else if (decrementHotkey != null)
+                {
+                    hotkeyText += $"減少[{decrementHotkey.GetDisplayText()}]";
                 }
                 else
                 {
@@ -74,6 +92,18 @@ namespace CounterCounter.UI.Views
             if (dialog.ShowDialog() == true)
             {
                 _counterManager.AddCounter(dialog.CounterName, dialog.CounterColor);
+
+                if (dialog.IncrementHotkey != null)
+                {
+                    _hotkeySettings.Add(dialog.IncrementHotkey);
+                }
+
+                if (dialog.DecrementHotkey != null)
+                {
+                    _hotkeySettings.Add(dialog.DecrementHotkey);
+                }
+
+                AutoSaveSettings();
                 RefreshCounterList();
             }
         }
@@ -99,10 +129,24 @@ namespace CounterCounter.UI.Views
             if (counter == null)
                 return;
 
-            var dialog = new CounterEditDialog(counter.Name, counter.Color);
+            var dialog = new CounterEditDialog(counter, _hotkeySettings);
             if (dialog.ShowDialog() == true)
             {
                 _counterManager.UpdateCounter(counterId, dialog.CounterName, dialog.CounterColor);
+
+                _hotkeySettings.RemoveAll(h => h.CounterId == counterId);
+
+                if (dialog.IncrementHotkey != null)
+                {
+                    _hotkeySettings.Add(dialog.IncrementHotkey);
+                }
+
+                if (dialog.DecrementHotkey != null)
+                {
+                    _hotkeySettings.Add(dialog.DecrementHotkey);
+                }
+
+                AutoSaveSettings();
                 RefreshCounterList();
             }
         }
@@ -123,8 +167,17 @@ namespace CounterCounter.UI.Views
             if (result == MessageBoxResult.Yes)
             {
                 _counterManager.RemoveCounter(counterId);
+                _hotkeySettings.RemoveAll(h => h.CounterId == counterId);
+                AutoSaveSettings();
                 RefreshCounterList();
             }
+        }
+
+        private void AutoSaveSettings()
+        {
+            _settings.Counters = _counterManager.GetAllCounters();
+            _settings.Hotkeys = _hotkeySettings;
+            _configManager.Save(_settings);
         }
     }
 
