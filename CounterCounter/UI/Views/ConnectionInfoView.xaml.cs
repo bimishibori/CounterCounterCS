@@ -12,12 +12,19 @@ namespace CounterCounter.UI.Views
 {
     public partial class ConnectionInfoView : WpfUserControl
     {
-        private readonly int _httpPort;
-        private readonly bool _isServerRunning;
+        private int _httpPort;
+        private bool _isServerRunning;
 
         public ConnectionInfoView(int httpPort, bool isServerRunning)
         {
             InitializeComponent();
+            _httpPort = httpPort;
+            _isServerRunning = isServerRunning;
+            UpdateConnectionInfo();
+        }
+
+        public void UpdateServerStatus(int httpPort, bool isServerRunning)
+        {
             _httpPort = httpPort;
             _isServerRunning = isServerRunning;
             UpdateConnectionInfo();

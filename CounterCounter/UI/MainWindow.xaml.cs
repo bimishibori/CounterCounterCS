@@ -253,6 +253,7 @@ namespace CounterCounter.UI
             UpdateTrayIcon();
 
             _serverSettingsView?.UpdateServerStatus(true);
+            _connectionInfoView?.UpdateServerStatus(_httpPort, true);
         }
 
         private void StopServer()
@@ -270,6 +271,7 @@ namespace CounterCounter.UI
             UpdateTrayIcon();
 
             _serverSettingsView?.UpdateServerStatus(false);
+            _connectionInfoView?.UpdateServerStatus(_httpPort, false);
         }
 
         private void UpdateServerToggleButton()
