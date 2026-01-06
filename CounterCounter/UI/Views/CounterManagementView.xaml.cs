@@ -1,5 +1,4 @@
-﻿// CounterCounter/UI/Views/CounterManagementView.xaml.cs
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows;
@@ -50,23 +49,26 @@ namespace CounterCounter.UI.Views
 
             foreach (var counter in counters)
             {
-                var incrementHotkey = _hotkeySettings.FirstOrDefault(h =>
-                    h.CounterId == counter.Id && h.Action == HotkeyAction.Increment);
-                var decrementHotkey = _hotkeySettings.FirstOrDefault(h =>
-                    h.CounterId == counter.Id && h.Action == HotkeyAction.Decrement);
+                var incrementHotkeys = _hotkeySettings.Where(h =>
+                    h.CounterId == counter.Id && h.Action == HotkeyAction.Increment).ToList();
+                var decrementHotkeys = _hotkeySettings.Where(h =>
+                    h.CounterId == counter.Id && h.Action == HotkeyAction.Decrement).ToList();
 
                 string hotkeyText = "ショートカット: ";
-                if (incrementHotkey != null && decrementHotkey != null)
+                if (incrementHotkeys.Any() || decrementHotkeys.Any())
                 {
-                    hotkeyText += $"増加[{incrementHotkey.GetDisplayText()}] 減少[{decrementHotkey.GetDisplayText()}]";
-                }
-                else if (incrementHotkey != null)
-                {
-                    hotkeyText += $"増加[{incrementHotkey.GetDisplayText()}]";
-                }
-                else if (decrementHotkey != null)
-                {
-                    hotkeyText += $"減少[{decrementHotkey.GetDisplayText()}]";
+                    var parts = new List<string>();
+                    if (incrementHotkeys.Any())
+                    {
+                        var keys = string.Join(", ", incrementHotkeys.Select(h => h.GetDisplayText()));
+                        parts.Add($"増加[{keys}]");
+                    }
+                    if (decrementHotkeys.Any())
+                    {
+                        var keys = string.Join(", ", decrementHotkeys.Select(h => h.GetDisplayText()));
+                        parts.Add($"減少[{keys}]");
+                    }
+                    hotkeyText += string.Join(" ", parts);
                 }
                 else
                 {
@@ -88,20 +90,13 @@ namespace CounterCounter.UI.Views
 
         private void AddCounter_Click(object sender, RoutedEventArgs e)
         {
-            var dialog = new CounterEditDialog();
+            var dialog = new CounterEditDialog(_hotkeySettings);
             if (dialog.ShowDialog() == true)
             {
                 _counterManager.AddCounter(dialog.CounterName, dialog.CounterColor);
 
-                if (dialog.IncrementHotkey != null)
-                {
-                    _hotkeySettings.Add(dialog.IncrementHotkey);
-                }
-
-                if (dialog.DecrementHotkey != null)
-                {
-                    _hotkeySettings.Add(dialog.DecrementHotkey);
-                }
+                _hotkeySettings.AddRange(dialog.IncrementHotkeys);
+                _hotkeySettings.AddRange(dialog.DecrementHotkeys);
 
                 AutoSaveSettings();
                 RefreshCounterList();
@@ -135,16 +130,8 @@ namespace CounterCounter.UI.Views
                 _counterManager.UpdateCounter(counterId, dialog.CounterName, dialog.CounterColor);
 
                 _hotkeySettings.RemoveAll(h => h.CounterId == counterId);
-
-                if (dialog.IncrementHotkey != null)
-                {
-                    _hotkeySettings.Add(dialog.IncrementHotkey);
-                }
-
-                if (dialog.DecrementHotkey != null)
-                {
-                    _hotkeySettings.Add(dialog.DecrementHotkey);
-                }
+                _hotkeySettings.AddRange(dialog.IncrementHotkeys);
+                _hotkeySettings.AddRange(dialog.DecrementHotkeys);
 
                 AutoSaveSettings();
                 RefreshCounterList();
