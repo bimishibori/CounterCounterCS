@@ -92,6 +92,21 @@ namespace CounterCounter.Server
             BroadcastMessage(message);
         }
 
+        public void BroadcastForceDisplay(string counterId)
+        {
+            var counter = _counterManager.GetCounter(counterId);
+            if (counter == null) return;
+
+            var message = JsonSerializer.Serialize(new
+            {
+                type = "force_display",
+                counterId,
+                counter
+            });
+
+            BroadcastMessage(message);
+        }
+
         private void BroadcastMessage(string message)
         {
             var socketsToRemove = new List<WebSocket>();

@@ -25,10 +25,18 @@ namespace CounterCounter.UI.Views
 
         private void InitializeRotationHotkeyComboBoxes()
         {
-            InitializeKeyComboBox(RotationKey1);
-            InitializeKeyComboBox(RotationKey2);
-            InitializeKeyComboBox(RotationKey3);
+            if (RotationKey1.Items.Count == 0)
+            {
+                InitializeKeyComboBox(RotationKey1);
+                InitializeKeyComboBox(RotationKey2);
+                InitializeKeyComboBox(RotationKey3);
+            }
 
+            LoadRotationHotkey();
+        }
+
+        private void LoadRotationHotkey()
+        {
             if (_settings.NextRotationHotkey != null)
             {
                 var keys = ParseHotkeyToKeys(
@@ -41,12 +49,9 @@ namespace CounterCounter.UI.Views
             }
             else
             {
-                SetComboBoxByTag(RotationKey1, 0x0002);
-                SetComboBoxByTag(RotationKey2, 0x0004);
-                SetComboBoxByTag(RotationKey3, 0x4E);
-
-                _settings.NextRotationHotkey = new HotkeySettings(
-                    "", HotkeyAction.NextRotation, 0x0002 | 0x0004, 0x4E);
+                SetComboBoxByTag(RotationKey1, 0);
+                SetComboBoxByTag(RotationKey2, 0);
+                SetComboBoxByTag(RotationKey3, 0);
             }
         }
 
@@ -129,6 +134,8 @@ namespace CounterCounter.UI.Views
             RotationKey1.IsEnabled = !_isServerRunning;
             RotationKey2.IsEnabled = !_isServerRunning;
             RotationKey3.IsEnabled = !_isServerRunning;
+
+            LoadRotationHotkey();
         }
 
         private void PortTextBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -182,7 +189,7 @@ namespace CounterCounter.UI.Views
                     }
                 }
 
-                if (modifiers != 0 && virtualKey != 0)
+                if (virtualKey != 0)
                 {
                     _settings.NextRotationHotkey = new HotkeySettings(
                         "", HotkeyAction.NextRotation, modifiers, virtualKey);

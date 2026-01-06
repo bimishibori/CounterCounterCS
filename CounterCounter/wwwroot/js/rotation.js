@@ -129,6 +129,21 @@ function stopRotation() {
     }
 }
 
+function forceDisplay(counterId) {
+    const index = counters.findIndex(c => c.Id === counterId);
+    if (index === -1) {
+        console.warn('Rotation Display: Counter not found for force display', counterId);
+        return;
+    }
+
+    stopRotation();
+    currentIndex = index;
+    showCounter(currentIndex);
+    console.log('Rotation Display: Force displayed counter', counterId, 'at index', index);
+
+    startRotation();
+}
+
 function updateCounter(data) {
     console.log('Rotation Display: Updating counter', data.counterId, 'to value', data.value);
 

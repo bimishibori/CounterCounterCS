@@ -193,26 +193,47 @@ namespace CounterCounter.UI
 
         private void ShowCountersView()
         {
-            _counterManagementView = new CounterManagementView(
-                _counterManager,
-                _settings.Hotkeys,
-                _configManager,
-                _settings);
+            if (_counterManagementView == null)
+            {
+                _counterManagementView = new CounterManagementView(
+                    _counterManager,
+                    _settings.Hotkeys,
+                    _configManager,
+                    _settings);
+                _counterManagementView.ForceDisplayRequested += OnForceDisplayRequested;
+            }
+
             ContentArea.Children.Clear();
             ContentArea.Children.Add(_counterManagementView);
         }
 
         private void ShowServerSettingsView()
         {
-            _serverSettingsView = new ServerSettingsView(_settings, _isServerRunning);
-            _serverSettingsView.SettingsChanged += OnServerSettingsChanged;
+            if (_serverSettingsView == null)
+            {
+                _serverSettingsView = new ServerSettingsView(_settings, _isServerRunning);
+                _serverSettingsView.SettingsChanged += OnServerSettingsChanged;
+            }
+            else
+            {
+                _serverSettingsView.UpdateServerStatus(_isServerRunning);
+            }
+
             ContentArea.Children.Clear();
             ContentArea.Children.Add(_serverSettingsView);
         }
 
         private void ShowConnectionInfoView()
         {
-            _connectionInfoView = new ConnectionInfoView(_httpPort, _isServerRunning);
+            if (_connectionInfoView == null)
+            {
+                _connectionInfoView = new ConnectionInfoView(_httpPort, _isServerRunning);
+            }
+            else
+            {
+                _connectionInfoView.UpdateServerStatus(_httpPort, _isServerRunning);
+            }
+
             ContentArea.Children.Clear();
             ContentArea.Children.Add(_connectionInfoView);
         }
@@ -232,6 +253,11 @@ namespace CounterCounter.UI
             }
 
             SaveSettings();
+        }
+
+        private void OnForceDisplayRequested(object? sender, string counterId)
+        {
+            _webServer?.BroadcastForceDisplay(counterId);
         }
 
         private void StartServer(int port)
@@ -344,6 +370,10 @@ namespace CounterCounter.UI
                 {
                     Console.WriteLine($"ローテーションホットキー登録失敗: {_settings.NextRotationHotkey.GetDisplayText()}");
                 }
+            }
+            else
+            {
+                Console.WriteLine("ローテーションホットキー: 未設定");
             }
 
             _hotkeyManager.HotkeyPressed += OnHotkeyPressed;

@@ -170,6 +170,11 @@ namespace CounterCounter.Server
             _wsHandler.BroadcastNextRotation();
         }
 
+        public void BroadcastForceDisplay(string counterId)
+        {
+            _wsHandler.BroadcastForceDisplay(counterId);
+        }
+
         public void Dispose()
         {
             _isRunning = false;

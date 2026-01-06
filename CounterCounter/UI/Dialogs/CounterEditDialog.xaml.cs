@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿// CounterCounter/UI/Dialogs/CounterEditDialog.xaml.cs
+using System.Windows;
 using System.Windows.Controls;
 using CounterCounter.Models;
 using WpfMessageBox = System.Windows.MessageBox;
@@ -280,7 +281,7 @@ namespace CounterCounter.UI.Dialogs
                     }
                 }
 
-                if (modifiers == 0 || virtualKey == 0)
+                if (virtualKey == 0)
                 {
                     continue;
                 }
