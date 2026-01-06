@@ -71,6 +71,7 @@ namespace CounterCounter.UI
             else
             {
                 e.Cancel = false;
+                System.Windows.Application.Current.Shutdown(); // 追加
             }
         }
 

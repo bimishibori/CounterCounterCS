@@ -6,7 +6,8 @@
         WindowStartupLocation="CenterScreen"
         Background="#0f0f0f"
         Closing="Window_Closing"
-        ResizeMode="CanMinimize">
+        ResizeMode="CanResize"
+        MinWidth="900" MinHeight="650">
 
     <Window.Resources>
         <Style x:Key="ModernButton" TargetType="Button">

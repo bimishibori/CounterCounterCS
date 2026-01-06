@@ -117,21 +117,23 @@
                     <DropShadowEffect Color="Black" BlurRadius="20" ShadowDepth="5" Opacity="0.5"/>
                 </Border.Effect>
                 <StackPanel>
-                    <TextBlock Text="サーバー情報" FontSize="20" FontWeight="Bold" Foreground="#e0e0e0" Margin="0,0,0,15"/>
+                    <TextBlock Text="インターバル設定" FontSize="20" FontWeight="Bold" Foreground="#e0e0e0" Margin="0,0,0,15"/>
 
-                    <StackPanel Orientation="Horizontal" Margin="0,5">
-                        <TextBlock Text="状態:" Width="150" Foreground="#e0e0e0"/>
-                        <TextBlock x:Name="ServerStatusText" Text="停止中" Foreground="#ff4757" FontWeight="Bold"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+                        <TextBlock Text="アナウンス:" VerticalAlignment="Center" Width="120" Foreground="#e0e0e0"/>
+                        <TextBox x:Name="AnnounceTextBox" Width="150" Padding="10" FontSize="14" 
+                                 Background="#0d0d0d" Foreground="#e0e0e0" BorderBrush="#333333"/>
+                        <TextBlock x:Name="AnnounceWarningText" Text="（サーバー起動中は変更不可）" 
+                                   VerticalAlignment="Center" Margin="15,0,0,0" 
+                                   Foreground="#ff6b6b" FontSize="12" Visibility="Collapsed"/>
                     </StackPanel>
-
-                    <StackPanel Orientation="Horizontal" Margin="0,5">
-                        <TextBlock Text="HTTPポート:" Width="150" Foreground="#e0e0e0"/>
-                        <TextBlock x:Name="HttpPortText" Text="未起動" Foreground="#00d4ff"/>
-                    </StackPanel>
-
-                    <StackPanel Orientation="Horizontal" Margin="0,5">
-                        <TextBlock Text="WebSocketポート:" Width="150" Foreground="#e0e0e0"/>
-                        <TextBlock x:Name="WsPortText" Text="未起動" Foreground="#00d4ff"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+                        <TextBlock Text="ローテーション:" VerticalAlignment="Center" Width="120" Foreground="#e0e0e0"/>
+                        <TextBox x:Name="RotationTextBox" Width="150" Padding="10" FontSize="14" 
+                                 Background="#0d0d0d" Foreground="#e0e0e0" BorderBrush="#333333"/>
+                        <TextBlock x:Name="RotationWarningText" Text="（サーバー起動中は変更不可）" 
+                                   VerticalAlignment="Center" Margin="15,0,0,0" 
+                                   Foreground="#ff6b6b" FontSize="12" Visibility="Collapsed"/>
                     </StackPanel>
                 </StackPanel>
             </Border>

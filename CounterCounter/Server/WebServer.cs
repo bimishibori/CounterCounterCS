@@ -24,7 +24,7 @@ namespace CounterCounter.Server
             _staticFileProvider = new StaticFileProvider();
         }
 
-        public async Task StartAsync(int startPort = 8765)
+        public async Task StartAsync(int startPort = 9000)
         {
             int port = startPort;
             int maxAttempts = 10;

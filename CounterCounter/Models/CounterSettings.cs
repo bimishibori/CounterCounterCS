@@ -13,7 +13,7 @@ namespace CounterCounter.Models
         {
             Counters = new List<Counter>();
             Hotkeys = new List<HotkeySettings>();
-            ServerPort = 8765;
+            ServerPort = 9000;
         }
 
         public static CounterSettings CreateDefault()
