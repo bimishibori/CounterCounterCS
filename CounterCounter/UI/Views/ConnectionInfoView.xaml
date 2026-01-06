@@ -74,6 +74,21 @@
                         <Button Content="URLをコピー" Click="CopyObsUrl_Click" Style="{StaticResource ModernButton}" 
                                 Width="150"/>
                     </StackPanel>
+                    
+                    <Border Background="#0d0d0d" CornerRadius="6" Padding="15" Margin="0,15,0,15">
+                        <TextBlock x:Name="RotateUrlText" 
+                                   FontFamily="Consolas" 
+                                   FontSize="14" 
+                                   Foreground="#00d4ff"
+                                   TextWrapping="Wrap"/>
+                    </Border>
+
+                    <StackPanel Orientation="Horizontal">
+                        <Button Content="ブラウザで開く" Click="OpenRotateUrl_Click" Style="{StaticResource ModernButton}" 
+                                Width="150" Margin="0,0,15,0"/>
+                        <Button Content="URLをコピー" Click="CopyRotateUrl_Click" Style="{StaticResource ModernButton}" 
+                                Width="150"/>
+                    </StackPanel>
                 </StackPanel>
             </Border>
 

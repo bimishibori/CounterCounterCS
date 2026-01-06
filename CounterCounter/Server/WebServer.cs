@@ -1,5 +1,4 @@
-﻿// CounterCounter/Server/WebServer.cs
-using System.Net;
+﻿using System.Net;
 using System.Text;
 using CounterCounter.Core;
 
@@ -96,16 +95,16 @@ namespace CounterCounter.Server
                     return;
                 }
 
-                if (path == "/")
+                if (path == "/obs.html")
                 {
-                    string html = _htmlProvider.GenerateManagerHtml(Port + 1);
+                    string html = _htmlProvider.GenerateObsHtml(Port + 1);
                     await SendHtmlResponseAsync(context, html);
                     return;
                 }
 
-                if (path == "/obs.html")
+                if (path == "/rotation.html")
                 {
-                    string html = _htmlProvider.GenerateObsHtml(Port + 1);
+                    string html = _htmlProvider.GenerateRotationHtml(Port + 1, 5000);
                     await SendHtmlResponseAsync(context, html);
                     return;
                 }

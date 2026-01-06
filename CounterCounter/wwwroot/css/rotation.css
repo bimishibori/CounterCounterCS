@@ -25,26 +25,27 @@ body {
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%) scale(0.8);
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.5s ease, transform 0.5s ease;
 }
 
-    .counter-item.visible {
+    .counter-item.active {
         opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
         pointer-events: auto;
     }
 
 .counter-name {
-    font-size: 2em;
+    font-size: 2.5em;
     font-weight: bold;
-    margin-bottom: 10px;
+    margin-bottom: 15px;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
 }
 
 .counter-value {
-    font-size: 8em;
+    font-size: 10em;
     font-weight: bold;
     font-family: 'Courier New', monospace;
     text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.8);

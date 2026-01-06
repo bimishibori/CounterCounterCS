@@ -1,65 +1,71 @@
 ﻿let ws = null;
 let counters = [];
-let hideTimeout = null;
-let currentVisibleCounterId = null;
+let currentIndex = 0;
+let rotationInterval = null;
+let intervalDuration = 5000;
 
 function init() {
-    console.log('OBS Display: Initializing...');
+    console.log('Rotation Display: Initializing...');
+
+    intervalDuration = parseInt(document.body.dataset.rotationInterval) || 5000;
+
     connectWebSocket();
 }
 
 function connectWebSocket() {
     const wsPort = parseInt(document.body.dataset.wsPort);
-    console.log('OBS Display: Connecting to WebSocket on port', wsPort);
+    console.log('Rotation Display: Connecting to WebSocket on port', wsPort);
 
     ws = new WebSocket(`ws://localhost:${wsPort}/ws`);
 
     ws.onopen = () => {
-        console.log('OBS Display: WebSocket connected');
+        console.log('Rotation Display: WebSocket connected');
     };
 
     ws.onmessage = (event) => {
-        console.log('OBS Display: Received message', event.data);
+        console.log('Rotation Display: Received message', event.data);
         const data = JSON.parse(event.data);
 
         if (data.type === 'init') {
-            console.log('OBS Display: Init message received with counters:', data.counters);
+            console.log('Rotation Display: Init message received with counters:', data.counters);
             counters = data.counters;
             renderCounters();
+            startRotation();
         } else if (data.type === 'counter_update') {
-            console.log('OBS Display: Counter update received', data);
+            console.log('Rotation Display: Counter update received', data);
             updateCounter(data);
         }
     };
 
     ws.onclose = () => {
-        console.log('OBS Display: WebSocket disconnected, reconnecting in 5 seconds...');
+        console.log('Rotation Display: WebSocket disconnected, reconnecting in 5 seconds...');
+        stopRotation();
         setTimeout(connectWebSocket, 5000);
     };
 
     ws.onerror = (error) => {
-        console.error('OBS Display: WebSocket error:', error);
+        console.error('Rotation Display: WebSocket error:', error);
     };
 }
 
 function renderCounters() {
-    console.log('OBS Display: Rendering counters', counters);
+    console.log('Rotation Display: Rendering counters', counters);
     const container = document.getElementById('counter-display');
     if (!container) {
-        console.error('OBS Display: counter-display element not found!');
+        console.error('Rotation Display: counter-display element not found!');
         return;
     }
 
     container.innerHTML = '';
 
     if (counters.length === 0) {
-        console.warn('OBS Display: No counters to display');
+        console.warn('Rotation Display: No counters to display');
         container.innerHTML = '<div style="color: white; text-align: center; padding: 20px;">カウンターがありません</div>';
         return;
     }
 
-    counters.forEach(counter => {
-        console.log('OBS Display: Creating counter element for', counter.Name);
+    counters.forEach((counter, index) => {
+        console.log('Rotation Display: Creating counter element for', counter.Name);
         const div = document.createElement('div');
         div.className = 'counter-item';
         div.id = `counter-${counter.Id}`;
@@ -70,33 +76,55 @@ function renderCounters() {
         container.appendChild(div);
     });
 
-    console.log('OBS Display: Rendering complete');
+    showCounter(currentIndex);
+    console.log('Rotation Display: Rendering complete');
 }
 
-function hideCurrentCounter() {
-    if (currentVisibleCounterId) {
-        const currentEl = document.getElementById(`counter-${currentVisibleCounterId}`);
-        if (currentEl) {
-            currentEl.classList.remove('visible');
-            console.log('OBS Display: Hiding current counter', currentVisibleCounterId);
+function showCounter(index) {
+    const container = document.getElementById('counter-display');
+    if (!container) return;
+
+    const items = container.querySelectorAll('.counter-item');
+    items.forEach((item, i) => {
+        if (i === index) {
+            item.classList.add('active');
+        } else {
+            item.classList.remove('active');
         }
-        currentVisibleCounterId = null;
+    });
+}
+
+function startRotation() {
+    if (counters.length <= 1) {
+        console.log('Rotation Display: Only one or no counters, rotation disabled');
+        return;
+    }
+
+    stopRotation();
+
+    rotationInterval = setInterval(() => {
+        currentIndex = (currentIndex + 1) % counters.length;
+        showCounter(currentIndex);
+        console.log('Rotation Display: Switched to counter index', currentIndex);
+    }, intervalDuration);
+
+    console.log('Rotation Display: Rotation started with interval', intervalDuration, 'ms');
+}
+
+function stopRotation() {
+    if (rotationInterval) {
+        clearInterval(rotationInterval);
+        rotationInterval = null;
+        console.log('Rotation Display: Rotation stopped');
     }
 }
 
 function updateCounter(data) {
-    console.log('OBS Display: Updating counter', data.counterId, 'to value', data.value);
+    console.log('Rotation Display: Updating counter', data.counterId, 'to value', data.value);
     const index = counters.findIndex(c => c.Id === data.counterId);
     if (index !== -1) {
         const oldValue = counters[index].Value;
         counters[index] = data.counter;
-
-        if (hideTimeout) {
-            clearTimeout(hideTimeout);
-            hideTimeout = null;
-        }
-
-        hideCurrentCounter();
 
         const el = document.getElementById(`counter-${data.counterId}`);
         if (el) {
@@ -118,16 +146,6 @@ function updateCounter(data) {
                     valueEl.classList.remove('flash', 'slide-up', 'slide-down');
                 }, 300);
             }
-
-            el.classList.add('visible');
-            currentVisibleCounterId = data.counterId;
-            console.log('OBS Display: Showing counter', data.counterId);
-
-            hideTimeout = setTimeout(() => {
-                el.classList.remove('visible');
-                currentVisibleCounterId = null;
-                console.log('OBS Display: Counter hidden after 3 seconds');
-            }, 3000);
         }
     }
 }
@@ -139,6 +157,6 @@ function escapeHtml(text) {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-    console.log('OBS Display: DOM loaded');
+    console.log('Rotation Display: DOM loaded');
     init();
 });
