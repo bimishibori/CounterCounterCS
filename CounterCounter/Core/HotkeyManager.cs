@@ -92,52 +92,6 @@ namespace CounterCounter.Core
             return success;
         }
 
-        public void UnregisterHotkey(string counterId, HotkeyAction action)
-        {
-            if (_hwnd == IntPtr.Zero)
-            {
-                return;
-            }
-
-            var toRemove = new List<int>();
-            foreach (var kvp in _registrations)
-            {
-                if (kvp.Value.CounterId == counterId && kvp.Value.Action == action)
-                {
-                    toRemove.Add(kvp.Key);
-                }
-            }
-
-            foreach (int id in toRemove)
-            {
-                UnregisterHotKey(_hwnd, id);
-                _registrations.Remove(id);
-            }
-        }
-
-        public void UnregisterAllHotkeysForCounter(string counterId)
-        {
-            if (_hwnd == IntPtr.Zero)
-            {
-                return;
-            }
-
-            var toRemove = new List<int>();
-            foreach (var kvp in _registrations)
-            {
-                if (kvp.Value.CounterId == counterId)
-                {
-                    toRemove.Add(kvp.Key);
-                }
-            }
-
-            foreach (int id in toRemove)
-            {
-                UnregisterHotKey(_hwnd, id);
-                _registrations.Remove(id);
-            }
-        }
-
         public void UnregisterAllHotkeys()
         {
             if (_hwnd == IntPtr.Zero)
@@ -151,6 +105,7 @@ namespace CounterCounter.Core
             }
 
             _registrations.Clear();
+            _nextHotkeyId = 1;
         }
 
         public bool IsHotkeyAlreadyRegistered(uint modifiers, uint vk)

@@ -48,26 +48,6 @@
 
 ## 🔴 次に実装すべき機能
 
-### 最優先: サーバー起動時のホットキー再登録【推定15分】
-
-現在、サーバー停止→再起動時にホットキーが正しく再登録されない可能性がある。
-MainWindow.StartServer()でホットキー登録を確実に行う。
-
-```csharp
-private void StartServer(int port)
-{
-    // 既存のホットキーを完全にクリア
-    _hotkeyManager?.Dispose();
-    _hotkeyManager = new HotkeyManager();
-    _hotkeyManager.Initialize(_hwnd);
-    
-    // 設定から全ホットキーを再登録
-    RegisterHotkeys();
-    
-    // 残りのサーバー起動処理...
-}
-```
-
 ### 高優先度: アニメーション実装
 
 - スライドイン演出
@@ -261,7 +241,6 @@ private void Window_Closing(object sender, CancelEventArgs e)
 
 ### 未実装（優先度: 高）
 
-- ⚠️ サーバー再起動時のホットキー再登録が不安定な可能性
 - ⚠️ アイコンが仮アイコン
 
 ### 未実装（優先度: 中）
@@ -326,8 +305,6 @@ private void Window_Closing(object sender, CancelEventArgs e)
 1. プロジェクトを開く
 2. ビルドして動作確認
 3. カウンター追加でホットキー複数セット設定をテスト
-4. **次の優先タスク**: サーバー再起動時のホットキー再登録修正
-
 ---
 
 ## 🎉 セッション8の成果
@@ -337,8 +314,6 @@ private void Window_Closing(object sender, CancelEventArgs e)
 - ウィンドウ終了動作の改善（サーバー状態で分岐）
 - ウィンドウサイズ可変対応
 - プロジェクト完成度: **98%**
-
-**次回の最優先タスク**: サーバー起動時のホットキー再登録修正（15分程度）
 
 ---
 

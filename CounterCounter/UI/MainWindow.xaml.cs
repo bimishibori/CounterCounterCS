@@ -63,8 +63,15 @@ namespace CounterCounter.UI
 
         private void Window_Closing(object sender, CancelEventArgs e)
         {
-            e.Cancel = true;
-            Hide();
+            if (_isServerRunning)
+            {
+                e.Cancel = true;
+                Hide();
+            }
+            else
+            {
+                e.Cancel = false;
+            }
         }
 
         public void StartServerFromTray()
@@ -227,15 +234,17 @@ namespace CounterCounter.UI
 
         private void StartServer(int port)
         {
+            _hotkeyManager?.Dispose();
+            _hotkeyManager = new HotkeyManager();
+            _hotkeyManager.Initialize(_hwnd);
+
+            RegisterHotkeys();
+
             _webServer = new WebServer(_counterManager);
             Task.Run(async () => await _webServer.StartAsync(port));
 
             _wsServer = new WebSocketServer(_counterManager, port);
             _wsServer.Start();
-
-            _hotkeyManager = new HotkeyManager();
-            _hotkeyManager.Initialize(_hwnd);
-            RegisterHotkeys();
 
             _isServerRunning = true;
             _httpPort = port;
@@ -274,7 +283,16 @@ namespace CounterCounter.UI
 
             foreach (var hotkey in _settings.Hotkeys)
             {
-                _hotkeyManager.RegisterHotkey(hotkey.CounterId, hotkey.Action, hotkey.Modifiers, hotkey.VirtualKey);
+                bool success = _hotkeyManager.RegisterHotkey(
+                    hotkey.CounterId,
+                    hotkey.Action,
+                    hotkey.Modifiers,
+                    hotkey.VirtualKey);
+
+                if (!success)
+                {
+                    Console.WriteLine($"ホットキー登録失敗: {hotkey.GetDisplayText()}");
+                }
             }
 
             _hotkeyManager.HotkeyPressed += OnHotkeyPressed;
