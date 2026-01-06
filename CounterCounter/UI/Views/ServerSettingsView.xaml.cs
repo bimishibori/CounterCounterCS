@@ -1,156 +1,85 @@
 ﻿// CounterCounter/UI/Views/ServerSettingsView.xaml.cs
 using System.Windows;
-using WpfMessageBox = System.Windows.MessageBox;
+using CounterCounter.Models;
 using WpfUserControl = System.Windows.Controls.UserControl;
-using WpfColor = System.Windows.Media.Color;
-using WpfColorConverter = System.Windows.Media.ColorConverter;
-using WpfSolidColorBrush = System.Windows.Media.SolidColorBrush;
-using WpfLinearGradientBrush = System.Windows.Media.LinearGradientBrush;
-using WpfGradientStop = System.Windows.Media.GradientStop;
-using Point = System.Windows.Point;
 
 namespace CounterCounter.UI.Views
 {
     public partial class ServerSettingsView : WpfUserControl
     {
-        private int _httpPort;
+        private readonly CounterSettings _settings;
         private bool _isServerRunning;
 
-        public event EventHandler<int>? ServerStartRequested;
-        public event EventHandler? ServerStopRequested;
-        public event EventHandler<int>? SaveSettingsRequested;
+        public event EventHandler? SettingsChanged;
 
-        public ServerSettingsView(int httpPort, bool isServerRunning)
+        public ServerSettingsView(CounterSettings settings, bool isServerRunning)
         {
             InitializeComponent();
-            _httpPort = httpPort;
+            _settings = settings;
             _isServerRunning = isServerRunning;
             UpdateUI();
         }
 
         private void UpdateUI()
         {
-            PortTextBox.Text = _httpPort.ToString();
+            PortTextBox.Text = _settings.ServerPort.ToString();
             PortTextBox.IsEnabled = !_isServerRunning;
             PortWarningText.Visibility = _isServerRunning ? Visibility.Visible : Visibility.Collapsed;
 
-            UpdateToggleButton();
-            UpdateServerInfo();
+            SlideInTextBox.Text = _settings.SlideInIntervalMs.ToString();
+            SlideInTextBox.IsEnabled = !_isServerRunning;
+            SlideInWarningText.Visibility = _isServerRunning ? Visibility.Visible : Visibility.Collapsed;
+
+            RotationTextBox.Text = _settings.RotationIntervalMs.ToString();
+            RotationTextBox.IsEnabled = !_isServerRunning;
+            RotationWarningText.Visibility = _isServerRunning ? Visibility.Visible : Visibility.Collapsed;
         }
 
-        private void UpdateToggleButton()
+        private void PortTextBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
-            if (_isServerRunning)
+            if (int.TryParse(PortTextBox.Text, out int port) && port >= 1024 && port <= 65535)
             {
-                ServerToggleButton.Content = "サーバー停止";
-                var stopBrush = new WpfLinearGradientBrush
-                {
-                    StartPoint = new Point(0, 0),
-                    EndPoint = new Point(1, 1)
-                };
-                stopBrush.GradientStops.Add(new WpfGradientStop(
-                    (WpfColor)WpfColorConverter.ConvertFromString("#ff4757"), 0));
-                stopBrush.GradientStops.Add(new WpfGradientStop(
-                    (WpfColor)WpfColorConverter.ConvertFromString("#ff1744"), 1));
-                ServerToggleButton.Background = stopBrush;
-                ServerToggleButton.Tag = WpfColorConverter.ConvertFromString("#ff4757");
-            }
-            else
-            {
-                ServerToggleButton.Content = "サーバー起動";
-                var startBrush = new WpfLinearGradientBrush
-                {
-                    StartPoint = new Point(0, 0),
-                    EndPoint = new Point(1, 1)
-                };
-                startBrush.GradientStops.Add(new WpfGradientStop(
-                    (WpfColor)WpfColorConverter.ConvertFromString("#5fec5f"), 0));
-                startBrush.GradientStops.Add(new WpfGradientStop(
-                    (WpfColor)WpfColorConverter.ConvertFromString("#2ecc71"), 1));
-                ServerToggleButton.Background = startBrush;
-                ServerToggleButton.Tag = WpfColorConverter.ConvertFromString("#5fec5f");
+                _settings.ServerPort = port;
+                SettingsChanged?.Invoke(this, EventArgs.Empty);
             }
         }
-
-        private void UpdateServerInfo()
+        private void SlideInTextBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
-            if (_isServerRunning)
+            if (int.TryParse(SlideInTextBox.Text, out int interval) && interval >= 1000)
             {
-                ServerStatusText.Text = "起動中";
-                ServerStatusText.Foreground = new WpfSolidColorBrush(
-                    (WpfColor)WpfColorConverter.ConvertFromString("#5fec5f"));
-                HttpPortText.Text = _httpPort.ToString();
-                WsPortText.Text = (_httpPort + 1).ToString();
-            }
-            else
-            {
-                ServerStatusText.Text = "停止中";
-                ServerStatusText.Foreground = new WpfSolidColorBrush(
-                    (WpfColor)WpfColorConverter.ConvertFromString("#ff4757"));
-                HttpPortText.Text = "未起動";
-                WsPortText.Text = "未起動";
+                _settings.SlideInIntervalMs = interval;
+                SettingsChanged?.Invoke(this, EventArgs.Empty);
             }
         }
 
-        private void ServerToggle_Click(object sender, RoutedEventArgs e)
+        private void RotationTextBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
-            if (_isServerRunning)
+            if (int.TryParse(RotationTextBox.Text, out int interval) && interval >= 1000)
             {
-                var result = WpfMessageBox.Show(
-                    "サーバーを停止しますか？\nOBSからの接続が切断されます。",
-                    "確認",
-                    MessageBoxButton.YesNo,
-                    MessageBoxImage.Question
-                );
-
-                if (result == MessageBoxResult.Yes)
-                {
-                    ServerStopRequested?.Invoke(this, EventArgs.Empty);
-                    _isServerRunning = false;
-                    UpdateUI();
-                }
-            }
-            else
-            {
-                if (!int.TryParse(PortTextBox.Text, out int port) || port < 1024 || port > 65535)
-                {
-                    WpfMessageBox.Show(
-                        "ポート番号は1024～65535の範囲で指定してください。",
-                        "エラー",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Warning
-                    );
-                    return;
-                }
-
-                _httpPort = port;
-                ServerStartRequested?.Invoke(this, port);
-                _isServerRunning = true;
-                UpdateUI();
+                _settings.RotationIntervalMs = interval;
+                SettingsChanged?.Invoke(this, EventArgs.Empty);
             }
         }
 
-        private void SaveSettings_Click(object sender, RoutedEventArgs e)
-        {
-            if (!int.TryParse(PortTextBox.Text, out int port) || port < 1024 || port > 65535)
-            {
-                WpfMessageBox.Show(
-                    "ポート番号は1024～65535の範囲で指定してください。",
-                    "エラー",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning
-                );
-                return;
-            }
-
-            SaveSettingsRequested?.Invoke(this, port);
-        }
-
-        public void UpdateServerStatus(bool isRunning, int httpPort)
+        public void UpdateServerStatus(bool isRunning)
         {
             _isServerRunning = isRunning;
-            _httpPort = httpPort;
             UpdateUI();
+        }
+
+        public int GetHttpPort()
+        {
+            return int.TryParse(PortTextBox.Text, out int port) ? port : 9000;
+        }
+
+        public int GetSlideInInterval()
+        {
+            return int.TryParse(SlideInTextBox.Text, out int interval) ? interval : 5000;
+        }
+
+        public int GetRotationInterval()
+        {
+            return int.TryParse(RotationTextBox.Text, out int interval) ? interval : 5000;
         }
     }
 }

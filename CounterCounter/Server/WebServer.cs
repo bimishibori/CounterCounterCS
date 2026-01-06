@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿// CounterCounter/Server/WebServer.cs
+using System.Net;
 using System.Text;
 using CounterCounter.Core;
 
@@ -11,17 +12,21 @@ namespace CounterCounter.Server
         private readonly ApiHandler _apiHandler;
         private readonly HtmlContentProvider _htmlProvider;
         private readonly StaticFileProvider _staticFileProvider;
+        private readonly int _rotationIntervalMs;
+        private readonly int _slideInIntervalMs;
         private bool _isRunning;
 
         public int Port { get; private set; }
 
-        public WebServer(CounterManager counterManager)
+        public WebServer(CounterManager counterManager, int rotationIntervalMs = 5000, int slideInIntervalMs = 5000)
         {
             _listener = new HttpListener();
             _counterManager = counterManager;
             _apiHandler = new ApiHandler(counterManager);
             _htmlProvider = new HtmlContentProvider();
             _staticFileProvider = new StaticFileProvider();
+            _rotationIntervalMs = rotationIntervalMs;
+            _slideInIntervalMs = slideInIntervalMs;
         }
 
         public async Task StartAsync(int startPort = 9000)
@@ -97,14 +102,14 @@ namespace CounterCounter.Server
 
                 if (path == "/obs.html")
                 {
-                    string html = _htmlProvider.GenerateObsHtml(Port + 1);
+                    string html = _htmlProvider.GenerateObsHtml(Port + 1, _slideInIntervalMs);
                     await SendHtmlResponseAsync(context, html);
                     return;
                 }
 
                 if (path == "/rotation.html")
                 {
-                    string html = _htmlProvider.GenerateRotationHtml(Port + 1, 5000);
+                    string html = _htmlProvider.GenerateRotationHtml(Port + 1, _rotationIntervalMs);
                     await SendHtmlResponseAsync(context, html);
                     return;
                 }

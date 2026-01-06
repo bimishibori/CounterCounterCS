@@ -25,6 +25,7 @@ namespace CounterCounter.UI.Components
         public event EventHandler<string>? ResetRequested;
         public event EventHandler<string>? EditRequested;
         public event EventHandler<string>? DeleteRequested;
+        public event EventHandler<(string counterId, bool showInRotation)>? ShowInRotationChanged;
 
         public CounterCard()
         {
@@ -54,6 +55,12 @@ namespace CounterCounter.UI.Components
         private void DeleteButton_Click(object sender, RoutedEventArgs e)
         {
             DeleteRequested?.Invoke(this, CounterId);
+        }
+
+        private void ShowInRotation_Changed(object sender, RoutedEventArgs e)
+        {
+            bool isChecked = ShowInRotationCheckBox.IsChecked ?? true;
+            ShowInRotationChanged?.Invoke(this, (CounterId, isChecked));
         }
     }
 }

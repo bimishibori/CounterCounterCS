@@ -8,12 +8,16 @@ namespace CounterCounter.Models
         public List<Counter> Counters { get; set; }
         public List<HotkeySettings> Hotkeys { get; set; }
         public int ServerPort { get; set; }
+        public int SlideInIntervalMs { get; set; }
+        public int RotationIntervalMs { get; set; }
 
         public CounterSettings()
         {
             Counters = new List<Counter>();
             Hotkeys = new List<HotkeySettings>();
             ServerPort = 9000;
+            SlideInIntervalMs = 5000;
+            RotationIntervalMs = 5000;
         }
 
         public static CounterSettings CreateDefault()
@@ -25,7 +29,8 @@ namespace CounterCounter.Models
                 Id = "default",
                 Name = "Default Counter",
                 Value = 0,
-                Color = "#00ff00"
+                Color = "#00ff00",
+                ShowInRotation = true
             };
             settings.Counters.Add(defaultCounter);
 

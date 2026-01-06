@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿// CounterCounter/UI/Views/CounterManagementView.xaml.cs
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows;
@@ -81,7 +82,8 @@ namespace CounterCounter.UI.Views
                     Name = counter.Name,
                     Value = counter.Value,
                     Color = counter.Color,
-                    HotkeyText = hotkeyText
+                    HotkeyText = hotkeyText,
+                    ShowInRotation = counter.ShowInRotation
                 });
             }
 
@@ -93,7 +95,16 @@ namespace CounterCounter.UI.Views
             var dialog = new CounterEditDialog(_hotkeySettings);
             if (dialog.ShowDialog() == true)
             {
-                _counterManager.AddCounter(dialog.CounterName, dialog.CounterColor);
+                var counter = new Counter
+                {
+                    Id = dialog.Counter!.Id,
+                    Name = dialog.CounterName,
+                    Color = dialog.CounterColor,
+                    Value = 0,
+                    ShowInRotation = true
+                };
+
+                _counterManager.AddCounter(counter);
 
                 _hotkeySettings.AddRange(dialog.IncrementHotkeys);
                 _hotkeySettings.AddRange(dialog.DecrementHotkeys);
@@ -145,7 +156,7 @@ namespace CounterCounter.UI.Views
                 return;
 
             var result = WpfMessageBox.Show(
-                $"カウンター「{counter.Name}」を削除しますか？",
+                $"カウンター「{counter.Name}」を削除しますか?",
                 "削除確認",
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Question
@@ -157,6 +168,16 @@ namespace CounterCounter.UI.Views
                 _hotkeySettings.RemoveAll(h => h.CounterId == counterId);
                 AutoSaveSettings();
                 RefreshCounterList();
+            }
+        }
+
+        private void CounterCard_ShowInRotationChanged(object? sender, (string counterId, bool showInRotation) args)
+        {
+            var counter = _counterManager.GetCounter(args.counterId);
+            if (counter != null)
+            {
+                counter.ShowInRotation = args.showInRotation;
+                AutoSaveSettings();
             }
         }
 
@@ -175,6 +196,7 @@ namespace CounterCounter.UI.Views
         private int _value;
         private string _color = "#ffffff";
         private string _hotkeyText = string.Empty;
+        private bool _showInRotation = true;
 
         public string Id
         {
@@ -214,6 +236,12 @@ namespace CounterCounter.UI.Views
         {
             get => _hotkeyText;
             set { _hotkeyText = value; OnPropertyChanged(); }
+        }
+
+        public bool ShowInRotation
+        {
+            get => _showInRotation;
+            set { _showInRotation = value; OnPropertyChanged(); }
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;

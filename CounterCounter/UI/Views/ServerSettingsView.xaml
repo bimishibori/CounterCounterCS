@@ -4,38 +4,6 @@
              Background="#0f0f0f">
 
     <UserControl.Resources>
-        <Style x:Key="ToggleButtonStyle" TargetType="Button">
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="20,12"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="MinWidth" Value="150"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}"
-                                CornerRadius="8"
-                                Padding="{TemplateBinding Padding}">
-                            <Border.Effect>
-                                <DropShadowEffect Color="{TemplateBinding Tag}" BlurRadius="15" ShadowDepth="0" Opacity="0.5"/>
-                            </Border.Effect>
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Opacity" Value="0.9"/>
-                            </Trigger>
-                            <Trigger Property="IsEnabled" Value="False">
-                                <Setter Property="Opacity" Value="0.4"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
         <Style x:Key="ModernButton" TargetType="Button">
             <Setter Property="Background">
                 <Setter.Value>
@@ -47,19 +15,16 @@
             </Setter>
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="20,12"/>
-            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Padding" Value="15,10"/>
+            <Setter Property="FontSize" Value="13"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border Background="{TemplateBinding Background}"
-                                CornerRadius="8"
+                                CornerRadius="6"
                                 Padding="{TemplateBinding Padding}">
-                            <Border.Effect>
-                                <DropShadowEffect Color="#00d4ff" BlurRadius="15" ShadowDepth="0" Opacity="0.5"/>
-                            </Border.Effect>
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
@@ -95,20 +60,35 @@
                     <TextBlock Text="ポート設定" FontSize="20" FontWeight="Bold" Foreground="#e0e0e0" Margin="0,0,0,15"/>
 
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
-                        <TextBlock Text="ポート番号:" VerticalAlignment="Center" Width="120" Foreground="#e0e0e0"/>
+                        <TextBlock Text="ポート番号:" VerticalAlignment="Center" Width="150" Foreground="#e0e0e0"/>
                         <TextBox x:Name="PortTextBox" Width="150" Padding="10" FontSize="14" 
-                                 Background="#0d0d0d" Foreground="#e0e0e0" BorderBrush="#333333"/>
+                                 Background="#0d0d0d" Foreground="#e0e0e0" BorderBrush="#333333"
+                                 TextChanged="PortTextBox_TextChanged"/>
                         <TextBlock x:Name="PortWarningText" Text="（サーバー起動中は変更不可）" 
                                    VerticalAlignment="Center" Margin="15,0,0,0" 
                                    Foreground="#ff6b6b" FontSize="12" Visibility="Collapsed"/>
                     </StackPanel>
+                </StackPanel>
+            </Border>
 
-                    <StackPanel Orientation="Horizontal">
-                        <Button x:Name="ServerToggleButton" Click="ServerToggle_Click" 
-                                Style="{StaticResource ToggleButtonStyle}" Margin="0,0,15,0"/>
-                        <Button Content="設定を保存" Click="SaveSettings_Click" 
-                                Style="{StaticResource ModernButton}" Width="150"/>
+            <Border Background="#1a1a1a" CornerRadius="12" Padding="30" Margin="0,0,0,20">
+                <Border.Effect>
+                    <DropShadowEffect Color="Black" BlurRadius="20" ShadowDepth="5" Opacity="0.5"/>
+                </Border.Effect>
+                <StackPanel>
+                    <TextBlock Text="スライドイン設定" FontSize="20" FontWeight="Bold" Foreground="#e0e0e0" Margin="0,0,0,15"/>
+
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+                        <TextBlock Text="表示間隔 (ミリ秒):" VerticalAlignment="Center" Width="150" Foreground="#e0e0e0"/>
+                        <TextBox x:Name="SlideInTextBox" Width="150" Padding="10" FontSize="14" 
+                                 Background="#0d0d0d" Foreground="#e0e0e0" BorderBrush="#333333"
+                                 TextChanged="SlideInTextBox_TextChanged"/>
+                        <TextBlock x:Name="SlideInWarningText" Text="（サーバー起動中は変更不可）" 
+                                   VerticalAlignment="Center" Margin="15,0,0,0" 
+                                   Foreground="#ff6b6b" FontSize="12" Visibility="Collapsed"/>
                     </StackPanel>
+
+                    <TextBlock Text="例: 5000 = 5秒間隔" FontSize="12" Foreground="#808080" Margin="150,0,0,0"/>
                 </StackPanel>
             </Border>
 
@@ -117,24 +97,19 @@
                     <DropShadowEffect Color="Black" BlurRadius="20" ShadowDepth="5" Opacity="0.5"/>
                 </Border.Effect>
                 <StackPanel>
-                    <TextBlock Text="インターバル設定" FontSize="20" FontWeight="Bold" Foreground="#e0e0e0" Margin="0,0,0,15"/>
+                    <TextBlock Text="ローテーション設定" FontSize="20" FontWeight="Bold" Foreground="#e0e0e0" Margin="0,0,0,15"/>
 
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
-                        <TextBlock Text="アナウンス:" VerticalAlignment="Center" Width="120" Foreground="#e0e0e0"/>
-                        <TextBox x:Name="AnnounceTextBox" Width="150" Padding="10" FontSize="14" 
-                                 Background="#0d0d0d" Foreground="#e0e0e0" BorderBrush="#333333"/>
-                        <TextBlock x:Name="AnnounceWarningText" Text="（サーバー起動中は変更不可）" 
-                                   VerticalAlignment="Center" Margin="15,0,0,0" 
-                                   Foreground="#ff6b6b" FontSize="12" Visibility="Collapsed"/>
-                    </StackPanel>
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
-                        <TextBlock Text="ローテーション:" VerticalAlignment="Center" Width="120" Foreground="#e0e0e0"/>
+                        <TextBlock Text="表示間隔 (ミリ秒):" VerticalAlignment="Center" Width="150" Foreground="#e0e0e0"/>
                         <TextBox x:Name="RotationTextBox" Width="150" Padding="10" FontSize="14" 
-                                 Background="#0d0d0d" Foreground="#e0e0e0" BorderBrush="#333333"/>
+                                 Background="#0d0d0d" Foreground="#e0e0e0" BorderBrush="#333333"
+                                 TextChanged="RotationTextBox_TextChanged"/>
                         <TextBlock x:Name="RotationWarningText" Text="（サーバー起動中は変更不可）" 
                                    VerticalAlignment="Center" Margin="15,0,0,0" 
                                    Foreground="#ff6b6b" FontSize="12" Visibility="Collapsed"/>
                     </StackPanel>
+
+                    <TextBlock Text="例: 5000 = 5秒間隔" FontSize="12" Foreground="#808080" Margin="150,0,0,0"/>
                 </StackPanel>
             </Border>
         </StackPanel>

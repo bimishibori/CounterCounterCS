@@ -1,5 +1,4 @@
-﻿
-// CounterCounter/Models/Counter.cs
+﻿// CounterCounter/Models/Counter.cs
 using System;
 
 namespace CounterCounter.Models
@@ -10,6 +9,7 @@ namespace CounterCounter.Models
         public string Name { get; set; }
         public int Value { get; set; }
         public string Color { get; set; }
+        public bool ShowInRotation { get; set; }
 
         public Counter()
         {
@@ -17,19 +17,21 @@ namespace CounterCounter.Models
             Name = "New Counter";
             Value = 0;
             Color = "#ffffff";
+            ShowInRotation = true;
         }
 
-        public Counter(string id, string name, int value, string color)
+        public Counter(string id, string name, int value, string color, bool showInRotation = true)
         {
             Id = id;
             Name = name;
             Value = value;
             Color = color;
+            ShowInRotation = showInRotation;
         }
 
         public Counter Clone()
         {
-            return new Counter(Id, Name, Value, Color);
+            return new Counter(Id, Name, Value, Color, ShowInRotation);
         }
     }
 

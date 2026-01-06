@@ -3,7 +3,7 @@ namespace CounterCounter.Server
 {
     public class HtmlContentProvider
     {
-        public string GenerateObsHtml(int wsPort)
+        public string GenerateObsHtml(int wsPort, int intervalMs = 5000)
         {
             return $@"<!DOCTYPE html>
 <html lang=""ja"">
@@ -13,7 +13,7 @@ namespace CounterCounter.Server
     <title>Counter Counter - OBS Display</title>
     <link rel=""stylesheet"" href=""/css/obs.css"">
 </head>
-<body data-ws-port=""{wsPort}"">
+<body data-ws-port=""{wsPort}"" data-slidein-interval=""{intervalMs}"">
     <div id=""counter-display""></div>
     <script src=""/js/obs.js""></script>
 </body>

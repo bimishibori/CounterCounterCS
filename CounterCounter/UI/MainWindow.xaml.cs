@@ -11,6 +11,9 @@ using WpfMessageBox = System.Windows.MessageBox;
 using WpfColor = System.Windows.Media.Color;
 using WpfColorConverter = System.Windows.Media.ColorConverter;
 using WpfSolidColorBrush = System.Windows.Media.SolidColorBrush;
+using WpfLinearGradientBrush = System.Windows.Media.LinearGradientBrush;
+using WpfGradientStop = System.Windows.Media.GradientStop;
+using Point = System.Windows.Point;
 
 namespace CounterCounter.UI
 {
@@ -45,6 +48,7 @@ namespace CounterCounter.UI
             _wsPort = _httpPort + 1;
             _isServerRunning = false;
 
+            UpdateServerToggleButton();
             UpdateServerStatus();
             ShowCountersView();
         }
@@ -70,8 +74,9 @@ namespace CounterCounter.UI
             }
             else
             {
+                SaveSettings();
                 e.Cancel = false;
-                System.Windows.Application.Current.Shutdown(); // 追加
+                System.Windows.Application.Current.Shutdown();
             }
         }
 
@@ -84,13 +89,8 @@ namespace CounterCounter.UI
 
             try
             {
+                SaveSettings();
                 StartServer(_httpPort);
-                WpfMessageBox.Show(
-                    $"サーバーを起動しました。\nHTTP: {_httpPort}\nWebSocket: {_wsPort}",
-                    "起動完了",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information
-                );
             }
             catch (Exception ex)
             {
@@ -111,28 +111,60 @@ namespace CounterCounter.UI
             }
 
             StopServer();
-            WpfMessageBox.Show(
-                "サーバーを停止しました。",
-                "停止完了",
-                MessageBoxButton.OK,
-                MessageBoxImage.Information
-            );
+        }
+
+        private void ServerToggle_Click(object sender, RoutedEventArgs e)
+        {
+            if (_isServerRunning)
+            {
+                var result = WpfMessageBox.Show(
+                    "サーバーを停止しますか?\nOBSからの接続が切断されます。",
+                    "確認",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Question
+                );
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    StopServer();
+                }
+            }
+            else
+            {
+                try
+                {
+                    SaveSettings();
+                    StartServer(_httpPort);
+                }
+                catch (Exception ex)
+                {
+                    WpfMessageBox.Show(
+                        $"サーバーの起動に失敗しました: {ex.Message}",
+                        "エラー",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error
+                    );
+                }
+            }
         }
 
         private void NavCounters_Click(object sender, RoutedEventArgs e)
         {
+            SaveSettings();
             ShowCountersView();
             UpdateNavButtons(NavCountersButton);
         }
 
         private void NavServer_Click(object sender, RoutedEventArgs e)
         {
+            SaveSettings();
             ShowServerSettingsView();
             UpdateNavButtons(NavServerButton);
         }
 
         private void NavConnection_Click(object sender, RoutedEventArgs e)
         {
+            SaveSettings();
             ShowConnectionInfoView();
             UpdateNavButtons(NavConnectionButton);
         }
@@ -162,10 +194,8 @@ namespace CounterCounter.UI
 
         private void ShowServerSettingsView()
         {
-            _serverSettingsView = new ServerSettingsView(_httpPort, _isServerRunning);
-            _serverSettingsView.ServerStartRequested += OnServerStartRequested;
-            _serverSettingsView.ServerStopRequested += OnServerStopRequested;
-            _serverSettingsView.SaveSettingsRequested += OnSaveSettingsRequested;
+            _serverSettingsView = new ServerSettingsView(_settings, _isServerRunning);
+            _serverSettingsView.SettingsChanged += OnServerSettingsChanged;
             ContentArea.Children.Clear();
             ContentArea.Children.Add(_serverSettingsView);
         }
@@ -177,60 +207,21 @@ namespace CounterCounter.UI
             ContentArea.Children.Add(_connectionInfoView);
         }
 
-        private void OnServerStartRequested(object? sender, int port)
+        private void OnServerSettingsChanged(object? sender, EventArgs e)
         {
-            if (_isServerRunning)
-            {
-                WpfMessageBox.Show("サーバーは既に起動しています。", "情報", MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
-            }
+            if (_serverSettingsView == null) return;
 
-            try
-            {
-                _httpPort = port;
-                _wsPort = port + 1;
-                StartServer(port);
+            _settings.ServerPort = _serverSettingsView.GetHttpPort();
+            _settings.SlideInIntervalMs = _serverSettingsView.GetSlideInInterval();
+            _settings.RotationIntervalMs = _serverSettingsView.GetRotationInterval();
 
-                _serverSettingsView?.UpdateServerStatus(true, _httpPort);
-
-                WpfMessageBox.Show(
-                    $"サーバーを起動しました。\nHTTP: {_httpPort}\nWebSocket: {_wsPort}",
-                    "起動完了",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information
-                );
-            }
-            catch (Exception ex)
-            {
-                WpfMessageBox.Show($"サーバーの起動に失敗しました: {ex.Message}", "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
-        private void OnServerStopRequested(object? sender, EventArgs e)
-        {
             if (!_isServerRunning)
             {
-                WpfMessageBox.Show("サーバーは起動していません。", "情報", MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
+                _httpPort = _settings.ServerPort;
+                _wsPort = _httpPort + 1;
             }
 
-            StopServer();
-            _serverSettingsView?.UpdateServerStatus(false, _httpPort);
-            WpfMessageBox.Show("サーバーを停止しました。", "停止完了", MessageBoxButton.OK, MessageBoxImage.Information);
-        }
-
-        private void OnSaveSettingsRequested(object? sender, int port)
-        {
-            _settings.ServerPort = port;
-            _settings.Counters = _counterManager.GetAllCounters();
-            _configManager.Save(_settings);
-
-            WpfMessageBox.Show(
-                "設定を保存しました。\nポート変更を反映するには、サーバーを再起動してください。",
-                "保存完了",
-                MessageBoxButton.OK,
-                MessageBoxImage.Information
-            );
+            SaveSettings();
         }
 
         private void StartServer(int port)
@@ -241,7 +232,7 @@ namespace CounterCounter.UI
 
             RegisterHotkeys();
 
-            _webServer = new WebServer(_counterManager);
+            _webServer = new WebServer(_counterManager, _settings.RotationIntervalMs, _settings.SlideInIntervalMs);
             Task.Run(async () => await _webServer.StartAsync(port));
 
             _wsServer = new WebSocketServer(_counterManager, port);
@@ -251,8 +242,11 @@ namespace CounterCounter.UI
             _httpPort = port;
             _wsPort = port + 1;
 
+            UpdateServerToggleButton();
             UpdateServerStatus();
             UpdateTrayIcon();
+
+            _serverSettingsView?.UpdateServerStatus(true);
         }
 
         private void StopServer()
@@ -268,8 +262,45 @@ namespace CounterCounter.UI
 
             _isServerRunning = false;
 
+            UpdateServerToggleButton();
             UpdateServerStatus();
             UpdateTrayIcon();
+
+            _serverSettingsView?.UpdateServerStatus(false);
+        }
+
+        private void UpdateServerToggleButton()
+        {
+            if (_isServerRunning)
+            {
+                ServerToggleButton.Content = "サーバー停止";
+                var stopBrush = new WpfLinearGradientBrush
+                {
+                    StartPoint = new Point(0, 0),
+                    EndPoint = new Point(1, 1)
+                };
+                stopBrush.GradientStops.Add(new WpfGradientStop(
+                    (WpfColor)WpfColorConverter.ConvertFromString("#ff4757"), 0));
+                stopBrush.GradientStops.Add(new WpfGradientStop(
+                    (WpfColor)WpfColorConverter.ConvertFromString("#ff1744"), 1));
+                ServerToggleButton.Background = stopBrush;
+                ServerToggleButton.Tag = WpfColorConverter.ConvertFromString("#ff4757");
+            }
+            else
+            {
+                ServerToggleButton.Content = "サーバー起動";
+                var startBrush = new WpfLinearGradientBrush
+                {
+                    StartPoint = new Point(0, 0),
+                    EndPoint = new Point(1, 1)
+                };
+                startBrush.GradientStops.Add(new WpfGradientStop(
+                    (WpfColor)WpfColorConverter.ConvertFromString("#5fec5f"), 0));
+                startBrush.GradientStops.Add(new WpfGradientStop(
+                    (WpfColor)WpfColorConverter.ConvertFromString("#2ecc71"), 1));
+                ServerToggleButton.Background = startBrush;
+                ServerToggleButton.Tag = WpfColorConverter.ConvertFromString("#5fec5f");
+            }
         }
 
         private void UpdateTrayIcon()
@@ -329,6 +360,12 @@ namespace CounterCounter.UI
             }
         }
 
+        private void SaveSettings()
+        {
+            _settings.Counters = _counterManager.GetAllCounters();
+            _configManager.Save(_settings);
+        }
+
         protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
@@ -336,9 +373,7 @@ namespace CounterCounter.UI
 
         public void Cleanup()
         {
-            _settings.Counters = _counterManager.GetAllCounters();
-            _settings.Hotkeys = _settings.Hotkeys;
-            _configManager.Save(_settings);
+            SaveSettings();
 
             _hotkeyManager?.Dispose();
             _wsServer?.Dispose();

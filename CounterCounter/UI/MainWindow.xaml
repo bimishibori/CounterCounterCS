@@ -56,50 +56,32 @@
             </Setter>
         </Style>
 
-        <Style x:Key="DangerButton" TargetType="Button" BasedOn="{StaticResource ModernButton}">
-            <Setter Property="Background">
+        <Style x:Key="ToggleButtonStyle" TargetType="Button">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="15,10"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
                 <Setter.Value>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                        <GradientStop Color="#ff4757" Offset="0"/>
-                        <GradientStop Color="#ff1744" Offset="1"/>
-                    </LinearGradientBrush>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                CornerRadius="6"
+                                Padding="{TemplateBinding Padding}">
+                            <Border.Effect>
+                                <DropShadowEffect Color="{TemplateBinding Tag}" BlurRadius="12" ShadowDepth="0" Opacity="0.5"/>
+                            </Border.Effect>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Opacity" Value="0.9"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
                 </Setter.Value>
             </Setter>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background">
-                        <Setter.Value>
-                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                <GradientStop Color="#ff6b7a" Offset="0"/>
-                                <GradientStop Color="#ff4060" Offset="1"/>
-                            </LinearGradientBrush>
-                        </Setter.Value>
-                    </Setter>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
-        <Style x:Key="SuccessButton" TargetType="Button" BasedOn="{StaticResource ModernButton}">
-            <Setter Property="Background">
-                <Setter.Value>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                        <GradientStop Color="#5fec5f" Offset="0"/>
-                        <GradientStop Color="#2ecc71" Offset="1"/>
-                    </LinearGradientBrush>
-                </Setter.Value>
-            </Setter>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background">
-                        <Setter.Value>
-                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                <GradientStop Color="#7fff7f" Offset="0"/>
-                                <GradientStop Color="#4de68d" Offset="1"/>
-                            </LinearGradientBrush>
-                        </Setter.Value>
-                    </Setter>
-                </Trigger>
-            </Style.Triggers>
         </Style>
 
         <Style TargetType="TextBlock">
@@ -143,10 +125,14 @@
 
                 <StackPanel Margin="15,10">
                     <TextBlock Text="サーバー状態" FontSize="12" Foreground="#808080" Margin="0,0,0,5"/>
-                    <StackPanel Orientation="Horizontal">
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
                         <Ellipse x:Name="ServerStatusDot" Width="10" Height="10" Fill="#ff4757" Margin="0,0,8,0"/>
                         <TextBlock x:Name="ServerStatusText" Text="停止中" FontSize="14" FontWeight="SemiBold" Foreground="#e0e0e0"/>
                     </StackPanel>
+
+                    <Button x:Name="ServerToggleButton" Click="ServerToggle_Click" 
+                            Style="{StaticResource ToggleButtonStyle}" 
+                            HorizontalAlignment="Stretch" Margin="0,5,0,0"/>
                 </StackPanel>
             </StackPanel>
         </Border>
