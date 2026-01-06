@@ -7,6 +7,7 @@ using WpfMessageBoxImage = System.Windows.MessageBoxImage;
 using WpfColor = System.Windows.Media.Color;
 using WpfColorConverter = System.Windows.Media.ColorConverter;
 using WpfSolidColorBrush = System.Windows.Media.SolidColorBrush;
+using Application = System.Windows.Application;
 
 namespace CounterCounter.UI.Dialogs
 {
@@ -24,11 +25,13 @@ namespace CounterCounter.UI.Dialogs
             string message,
             string title = "メッセージ",
             WpfMessageBoxButton button = WpfMessageBoxButton.OK,
-            WpfMessageBoxImage icon = WpfMessageBoxImage.None)
+            WpfMessageBoxImage icon = WpfMessageBoxImage.None,
+            Window? owner = null)
         {
             var dialog = new ModernMessageBox
             {
-                Title = title
+                Title = title,
+                Owner = owner ?? Application.Current?.MainWindow
             };
 
             dialog.TitleText.Text = title;
@@ -116,6 +119,14 @@ namespace CounterCounter.UI.Dialogs
             Result = WpfMessageBoxResult.No;
             DialogResult = false;
             Close();
+        }
+
+        private void Window_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (e.ButtonState == System.Windows.Input.MouseButtonState.Pressed)
+            {
+                DragMove();
+            }
         }
     }
 }

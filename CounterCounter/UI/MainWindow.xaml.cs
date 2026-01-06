@@ -105,7 +105,8 @@ namespace CounterCounter.UI
                     $"サーバーの起動に失敗しました: {ex.Message}",
                     "エラー",
                     WpfMessageBoxButton.OK,
-                    WpfMessageBoxImage.Error
+                    WpfMessageBoxImage.Error,
+                    this
                 );
             }
         }
@@ -128,7 +129,8 @@ namespace CounterCounter.UI
                     "サーバーを停止しますか?\nOBSからの接続が切断されます。",
                     "確認",
                     WpfMessageBoxButton.YesNo,
-                    WpfMessageBoxImage.Question
+                    WpfMessageBoxImage.Question,
+                    this
                 );
 
                 if (result == WpfMessageBoxResult.Yes)
@@ -149,7 +151,8 @@ namespace CounterCounter.UI
                         $"サーバーの起動に失敗しました: {ex.Message}",
                         "エラー",
                         WpfMessageBoxButton.OK,
-                        WpfMessageBoxImage.Error
+                        WpfMessageBoxImage.Error,
+                        this
                     );
                 }
             }
