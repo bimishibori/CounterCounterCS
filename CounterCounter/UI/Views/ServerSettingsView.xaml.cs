@@ -39,6 +39,15 @@ namespace CounterCounter.UI.Views
                 SetComboBoxByTag(RotationKey2, keys.Length > 1 ? keys[1] : 0);
                 SetComboBoxByTag(RotationKey3, keys.Length > 2 ? keys[2] : 0);
             }
+            else
+            {
+                SetComboBoxByTag(RotationKey1, 0x0002);
+                SetComboBoxByTag(RotationKey2, 0x0004);
+                SetComboBoxByTag(RotationKey3, 0x4E);
+
+                _settings.NextRotationHotkey = new HotkeySettings(
+                    "", HotkeyAction.NextRotation, 0x0002 | 0x0004, 0x4E);
+            }
         }
 
         private void InitializeKeyComboBox(ComboBox comboBox)
@@ -214,7 +223,7 @@ namespace CounterCounter.UI.Views
 
         public int GetSlideInInterval()
         {
-            return int.TryParse(SlideInTextBox.Text, out int interval) ? interval : 5000;
+            return int.TryParse(SlideInTextBox.Text, out int interval) ? interval : 3000;
         }
 
         public int GetRotationInterval()
