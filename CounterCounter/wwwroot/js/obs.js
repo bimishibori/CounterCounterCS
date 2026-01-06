@@ -2,12 +2,12 @@
 let counters = [];
 let currentVisibleCounterId = null;
 let slideInInterval = null;
-let intervalDuration = 3000;
+let intervalDuration = 5000;
 
 function init() {
     console.log('OBS Display: Initializing...');
 
-    intervalDuration = parseInt(document.body.dataset.slideInInterval) || 3000;
+    intervalDuration = parseInt(document.body.dataset.slideinInterval) || 5000;
 
     connectWebSocket();
 }
@@ -125,12 +125,12 @@ function updateCounter(data) {
 
             el.classList.add('visible');
             currentVisibleCounterId = data.counterId;
-            console.log('OBS Display: Showing counter', data.counterId);
+            console.log('OBS Display: Showing counter', data.counterId, 'for', intervalDuration, 'ms');
 
             slideInInterval = setTimeout(() => {
                 el.classList.remove('visible');
                 currentVisibleCounterId = null;
-                console.log('OBS Display: Counter hidden after ' + intervalDuration +' seconds');
+                console.log('OBS Display: Counter hidden after interval');
             }, intervalDuration);
         }
     }

@@ -83,6 +83,21 @@ namespace CounterCounter.Server
             _server.WebSocketServices["/ws"].Sessions.Broadcast(message);
         }
 
+        public void BroadcastForceDisplay(string counterId)
+        {
+            var counter = _counterManager.GetCounter(counterId);
+            if (counter == null) return;
+
+            var message = JsonSerializer.Serialize(new
+            {
+                type = "force_display",
+                counterId,
+                counter
+            });
+
+            _server.WebSocketServices["/ws"].Sessions.Broadcast(message);
+        }
+
         public void Dispose()
         {
             _counterManager.CounterChanged -= OnCounterChanged;

@@ -26,6 +26,7 @@ namespace CounterCounter.UI.Components
         public event EventHandler<string>? EditRequested;
         public event EventHandler<string>? DeleteRequested;
         public event EventHandler<(string counterId, bool showInRotation)>? ShowInRotationChanged;
+        public event EventHandler<string>? ForceDisplayRequested;
 
         public CounterCard()
         {
@@ -61,6 +62,11 @@ namespace CounterCounter.UI.Components
         {
             bool isChecked = ShowInRotationCheckBox.IsChecked ?? true;
             ShowInRotationChanged?.Invoke(this, (CounterId, isChecked));
+        }
+
+        private void ForceDisplayButton_Click(object sender, RoutedEventArgs e)
+        {
+            ForceDisplayRequested?.Invoke(this, CounterId);
         }
     }
 }

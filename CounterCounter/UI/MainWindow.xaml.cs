@@ -188,8 +188,17 @@ namespace CounterCounter.UI
                 _settings.Hotkeys,
                 _configManager,
                 _settings);
+            _counterManagementView.ForceDisplayRequested += OnForceDisplayRequested;
             ContentArea.Children.Clear();
             ContentArea.Children.Add(_counterManagementView);
+        }
+
+        private void OnForceDisplayRequested(object? sender, string counterId)
+        {
+            if (_wsServer != null)
+            {
+                _wsServer.BroadcastForceDisplay(counterId);
+            }
         }
 
         private void ShowServerSettingsView()

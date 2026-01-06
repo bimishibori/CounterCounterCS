@@ -28,12 +28,15 @@ function connectWebSocket() {
 
         if (data.type === 'init') {
             console.log('Rotation Display: Init message received with counters:', data.counters);
-            counters = data.counters;
+            counters = data.counters.filter(c => c.ShowInRotation);
             renderCounters();
             startRotation();
         } else if (data.type === 'counter_update') {
             console.log('Rotation Display: Counter update received', data);
             updateCounter(data);
+        } else if (data.type === 'force_display') {
+            console.log('Rotation Display: Force display received', data);
+            forceDisplayCounter(data);
         }
     };
 
@@ -121,32 +124,58 @@ function stopRotation() {
 
 function updateCounter(data) {
     console.log('Rotation Display: Updating counter', data.counterId, 'to value', data.value);
-    const index = counters.findIndex(c => c.Id === data.counterId);
-    if (index !== -1) {
-        const oldValue = counters[index].Value;
-        counters[index] = data.counter;
 
-        const el = document.getElementById(`counter-${data.counterId}`);
-        if (el) {
-            const valueEl = el.querySelector('.counter-value');
-            if (valueEl) {
-                valueEl.textContent = data.counter.Value;
+    if (data.counter.ShowInRotation) {
+        const index = counters.findIndex(c => c.Id === data.counterId);
+        if (index === -1) {
+            counters.push(data.counter);
+            renderCounters();
+            startRotation();
+        } else {
+            const oldValue = counters[index].Value;
+            counters[index] = data.counter;
 
-                valueEl.classList.remove('flash', 'slide-up', 'slide-down');
+            const el = document.getElementById(`counter-${data.counterId}`);
+            if (el) {
+                const valueEl = el.querySelector('.counter-value');
+                if (valueEl) {
+                    valueEl.textContent = data.counter.Value;
 
-                if (data.counter.Value > oldValue) {
-                    valueEl.classList.add('slide-up');
-                } else if (data.counter.Value < oldValue) {
-                    valueEl.classList.add('slide-down');
-                }
-
-                valueEl.classList.add('flash');
-
-                setTimeout(() => {
                     valueEl.classList.remove('flash', 'slide-up', 'slide-down');
-                }, 300);
+
+                    if (data.counter.Value > oldValue) {
+                        valueEl.classList.add('slide-up');
+                    } else if (data.counter.Value < oldValue) {
+                        valueEl.classList.add('slide-down');
+                    }
+
+                    valueEl.classList.add('flash');
+
+                    setTimeout(() => {
+                        valueEl.classList.remove('flash', 'slide-up', 'slide-down');
+                    }, 300);
+                }
             }
         }
+    } else {
+        const index = counters.findIndex(c => c.Id === data.counterId);
+        if (index !== -1) {
+            counters.splice(index, 1);
+            renderCounters();
+            startRotation();
+        }
+    }
+}
+
+function forceDisplayCounter(data) {
+    console.log('Rotation Display: Force displaying counter', data.counterId);
+
+    const index = counters.findIndex(c => c.Id === data.counterId);
+    if (index !== -1) {
+        stopRotation();
+        currentIndex = index;
+        showCounter(currentIndex);
+        startRotation();
     }
 }
 

@@ -21,6 +21,8 @@ namespace CounterCounter.UI.Views
         private readonly CounterSettings _settings;
         private ObservableCollection<CounterDisplayModel> _counters;
 
+        public event EventHandler<string>? ForceDisplayRequested;
+
         public CounterManagementView(
             CounterManager counterManager,
             List<HotkeySettings> hotkeySettings,
@@ -179,6 +181,11 @@ namespace CounterCounter.UI.Views
                 counter.ShowInRotation = args.showInRotation;
                 AutoSaveSettings();
             }
+        }
+
+        private void CounterCard_ForceDisplayRequested(object? sender, string counterId)
+        {
+            ForceDisplayRequested?.Invoke(this, counterId);
         }
 
         private void AutoSaveSettings()

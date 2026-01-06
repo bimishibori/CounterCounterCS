@@ -64,7 +64,8 @@
                             ResetRequested="CounterCard_ResetRequested"
                             EditRequested="CounterCard_EditRequested"
                             DeleteRequested="CounterCard_DeleteRequested"
-                            ShowInRotationChanged="CounterCard_ShowInRotationChanged"/>
+                            ShowInRotationChanged="CounterCard_ShowInRotationChanged"
+                            ForceDisplayRequested="CounterCard_ForceDisplayRequested"/>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
