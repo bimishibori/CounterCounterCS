@@ -1,8 +1,11 @@
 ﻿// CounterCounter/UI/Views/ConnectionInfoView.xaml.cs
 using System.Diagnostics;
 using System.Windows;
+using CounterCounter.UI.Dialogs;
 using WpfClipboard = System.Windows.Clipboard;
-using WpfMessageBox = System.Windows.MessageBox;
+using WpfMessageBox = CounterCounter.UI.Dialogs.ModernMessageBox;
+using WpfMessageBoxButton = System.Windows.MessageBoxButton;
+using WpfMessageBoxImage = System.Windows.MessageBoxImage;
 using WpfUserControl = System.Windows.Controls.UserControl;
 
 namespace CounterCounter.UI.Views
@@ -10,14 +13,12 @@ namespace CounterCounter.UI.Views
     public partial class ConnectionInfoView : WpfUserControl
     {
         private readonly int _httpPort;
-        private readonly int _wsPort;
         private readonly bool _isServerRunning;
 
-        public ConnectionInfoView(int httpPort, int wsPort, bool isServerRunning)
+        public ConnectionInfoView(int httpPort, bool isServerRunning)
         {
             InitializeComponent();
             _httpPort = httpPort;
-            _wsPort = wsPort;
             _isServerRunning = isServerRunning;
             UpdateConnectionInfo();
         }
@@ -29,7 +30,6 @@ namespace CounterCounter.UI.Views
                 ObsUrlText.Text = $"http://localhost:{_httpPort}/obs.html";
                 RotateUrlText.Text = $"http://localhost:{_httpPort}/rotation.html";
                 HttpPortText.Text = _httpPort.ToString();
-                WsPortText.Text = _wsPort.ToString();
                 ServerStatusText.Text = "起動中";
                 ServerStatusText.Foreground = System.Windows.Media.Brushes.LimeGreen;
             }
@@ -38,7 +38,6 @@ namespace CounterCounter.UI.Views
                 ObsUrlText.Text = "サーバーが起動していません";
                 RotateUrlText.Text = "サーバーが起動していません";
                 HttpPortText.Text = "未起動";
-                WsPortText.Text = "未起動";
                 ServerStatusText.Text = "停止中";
                 ServerStatusText.Foreground = System.Windows.Media.Brushes.Red;
             }
@@ -51,8 +50,8 @@ namespace CounterCounter.UI.Views
                 WpfMessageBox.Show(
                     "サーバーが起動していません。\n「サーバー設定」からサーバーを起動してください。",
                     "エラー",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning
+                    WpfMessageBoxButton.OK,
+                    WpfMessageBoxImage.Warning
                 );
                 return;
             }
@@ -70,8 +69,8 @@ namespace CounterCounter.UI.Views
                 WpfMessageBox.Show(
                     $"ブラウザを開けませんでした: {ex.Message}",
                     "エラー",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error
+                    WpfMessageBoxButton.OK,
+                    WpfMessageBoxImage.Error
                 );
             }
         }
@@ -83,8 +82,8 @@ namespace CounterCounter.UI.Views
                 WpfMessageBox.Show(
                     "サーバーが起動していません。\n「サーバー設定」からサーバーを起動してください。",
                     "エラー",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning
+                    WpfMessageBoxButton.OK,
+                    WpfMessageBoxImage.Warning
                 );
                 return;
             }
@@ -95,8 +94,8 @@ namespace CounterCounter.UI.Views
                 WpfMessageBox.Show(
                     "URLをクリップボードにコピーしました",
                     "コピー完了",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information
+                    WpfMessageBoxButton.OK,
+                    WpfMessageBoxImage.Information
                 );
             }
             catch (Exception ex)
@@ -104,8 +103,8 @@ namespace CounterCounter.UI.Views
                 WpfMessageBox.Show(
                     $"クリップボードへのコピーに失敗しました: {ex.Message}",
                     "エラー",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error
+                    WpfMessageBoxButton.OK,
+                    WpfMessageBoxImage.Error
                 );
             }
         }
@@ -118,8 +117,8 @@ namespace CounterCounter.UI.Views
                 WpfMessageBox.Show(
                     "サーバーが起動していません。\n「サーバー設定」からサーバーを起動してください。",
                     "エラー",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning
+                    WpfMessageBoxButton.OK,
+                    WpfMessageBoxImage.Warning
                 );
                 return;
             }
@@ -137,8 +136,8 @@ namespace CounterCounter.UI.Views
                 WpfMessageBox.Show(
                     $"ブラウザを開けませんでした: {ex.Message}",
                     "エラー",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error
+                    WpfMessageBoxButton.OK,
+                    WpfMessageBoxImage.Error
                 );
             }
         }
@@ -150,8 +149,8 @@ namespace CounterCounter.UI.Views
                 WpfMessageBox.Show(
                     "サーバーが起動していません。\n「サーバー設定」からサーバーを起動してください。",
                     "エラー",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning
+                    WpfMessageBoxButton.OK,
+                    WpfMessageBoxImage.Warning
                 );
                 return;
             }
@@ -162,8 +161,8 @@ namespace CounterCounter.UI.Views
                 WpfMessageBox.Show(
                     "URLをクリップボードにコピーしました",
                     "コピー完了",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information
+                    WpfMessageBoxButton.OK,
+                    WpfMessageBoxImage.Information
                 );
             }
             catch (Exception ex)
@@ -171,8 +170,8 @@ namespace CounterCounter.UI.Views
                 WpfMessageBox.Show(
                     $"クリップボードへのコピーに失敗しました: {ex.Message}",
                     "エラー",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error
+                    WpfMessageBoxButton.OK,
+                    WpfMessageBoxImage.Error
                 );
             }
         }

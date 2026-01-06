@@ -74,7 +74,7 @@
                         <Button Content="URLをコピー" Click="CopyObsUrl_Click" Style="{StaticResource ModernButton}" 
                                 Width="150"/>
                     </StackPanel>
-                    
+
                     <Border Background="#0d0d0d" CornerRadius="6" Padding="15" Margin="0,15,0,15">
                         <TextBlock x:Name="RotateUrlText" 
                                    FontFamily="Consolas" 
@@ -100,13 +100,8 @@
                     <TextBlock Text="サーバー情報" FontSize="20" FontWeight="Bold" Foreground="#e0e0e0" Margin="0,0,0,15"/>
 
                     <StackPanel Orientation="Horizontal" Margin="0,8">
-                        <TextBlock Text="HTTPポート:" Width="150" Foreground="#e0e0e0"/>
+                        <TextBlock Text="ポート:" Width="150" Foreground="#e0e0e0"/>
                         <TextBlock x:Name="HttpPortText" Foreground="#00d4ff" FontWeight="Bold"/>
-                    </StackPanel>
-
-                    <StackPanel Orientation="Horizontal" Margin="0,8">
-                        <TextBlock Text="WebSocketポート:" Width="150" Foreground="#e0e0e0"/>
-                        <TextBlock x:Name="WsPortText" Foreground="#00d4ff" FontWeight="Bold"/>
                     </StackPanel>
 
                     <StackPanel Orientation="Horizontal" Margin="0,8">

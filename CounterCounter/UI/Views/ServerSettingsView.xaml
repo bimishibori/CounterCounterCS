@@ -92,7 +92,7 @@
                 </StackPanel>
             </Border>
 
-            <Border Background="#1a1a1a" CornerRadius="12" Padding="30">
+            <Border Background="#1a1a1a" CornerRadius="12" Padding="30" Margin="0,0,0,20">
                 <Border.Effect>
                     <DropShadowEffect Color="Black" BlurRadius="20" ShadowDepth="5" Opacity="0.5"/>
                 </Border.Effect>
@@ -109,7 +109,18 @@
                                    Foreground="#ff6b6b" FontSize="12" Visibility="Collapsed"/>
                     </StackPanel>
 
-                    <TextBlock Text="例: 5000 = 5秒間隔" FontSize="12" Foreground="#808080" Margin="150,0,0,0"/>
+                    <TextBlock Text="例: 5000 = 5秒間隔" FontSize="12" Foreground="#808080" Margin="150,0,0,10"/>
+
+                    <TextBlock Text="ローテーション切り替えホットキー" FontSize="16" FontWeight="Bold" 
+                               Foreground="#e0e0e0" Margin="0,20,0,15"/>
+
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                        <ComboBox x:Name="RotationKey1" Width="110" Margin="5,0,5,0" SelectionChanged="RotationHotkey_Changed"/>
+                        <ComboBox x:Name="RotationKey2" Width="110" Margin="5,0,5,0" SelectionChanged="RotationHotkey_Changed"/>
+                        <ComboBox x:Name="RotationKey3" Width="110" Margin="5,0,5,0" SelectionChanged="RotationHotkey_Changed"/>
+                    </StackPanel>
+
+                    <TextBlock Text="ゲーム中でも次のカウンターに切り替え可能" FontSize="12" Foreground="#808080" Margin="5,0,0,0"/>
                 </StackPanel>
             </Border>
         </StackPanel>

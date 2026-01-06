@@ -10,14 +10,16 @@ namespace CounterCounter.Models
         public int ServerPort { get; set; }
         public int SlideInIntervalMs { get; set; }
         public int RotationIntervalMs { get; set; }
+        public HotkeySettings? NextRotationHotkey { get; set; }
 
         public CounterSettings()
         {
             Counters = new List<Counter>();
             Hotkeys = new List<HotkeySettings>();
             ServerPort = 9000;
-            SlideInIntervalMs = 5000;
+            SlideInIntervalMs = 3000;
             RotationIntervalMs = 5000;
+            NextRotationHotkey = null;
         }
 
         public static CounterSettings CreateDefault()
@@ -40,6 +42,9 @@ namespace CounterCounter.Models
                 "default", HotkeyAction.Decrement, 0x0002 | 0x0004, 0x28));
             settings.Hotkeys.Add(new HotkeySettings(
                 "default", HotkeyAction.Reset, 0x0002 | 0x0004, 0x52));
+
+            settings.NextRotationHotkey = new HotkeySettings(
+                "", HotkeyAction.NextRotation, 0x0002 | 0x0004, 0x4E);
 
             return settings;
         }

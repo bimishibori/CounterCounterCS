@@ -3,7 +3,7 @@ namespace CounterCounter.Server
 {
     public class HtmlContentProvider
     {
-        public string GenerateObsHtml(int wsPort, int intervalMs = 5000)
+        public string GenerateObsHtml(int wsPort, int intervalMs = 3000)
         {
             return $@"<!DOCTYPE html>
 <html lang=""ja"">

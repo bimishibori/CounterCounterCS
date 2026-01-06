@@ -1,5 +1,6 @@
 ﻿// CounterCounter/Server/WebServer.cs
 using System.Net;
+using System.Net.WebSockets;
 using System.Text;
 using CounterCounter.Core;
 
@@ -12,6 +13,7 @@ namespace CounterCounter.Server
         private readonly ApiHandler _apiHandler;
         private readonly HtmlContentProvider _htmlProvider;
         private readonly StaticFileProvider _staticFileProvider;
+        private readonly WebSocketHandler _wsHandler;
         private readonly int _rotationIntervalMs;
         private readonly int _slideInIntervalMs;
         private bool _isRunning;
@@ -25,6 +27,7 @@ namespace CounterCounter.Server
             _apiHandler = new ApiHandler(counterManager);
             _htmlProvider = new HtmlContentProvider();
             _staticFileProvider = new StaticFileProvider();
+            _wsHandler = new WebSocketHandler(counterManager);
             _rotationIntervalMs = rotationIntervalMs;
             _slideInIntervalMs = slideInIntervalMs;
         }
@@ -94,6 +97,12 @@ namespace CounterCounter.Server
                     return;
                 }
 
+                if (path == "/ws" && context.Request.IsWebSocketRequest)
+                {
+                    await HandleWebSocketAsync(context);
+                    return;
+                }
+
                 if (path.StartsWith("/api/"))
                 {
                     await _apiHandler.HandleApiRequestAsync(context, path, method);
@@ -102,14 +111,14 @@ namespace CounterCounter.Server
 
                 if (path == "/obs.html")
                 {
-                    string html = _htmlProvider.GenerateObsHtml(Port + 1, _slideInIntervalMs);
+                    string html = _htmlProvider.GenerateObsHtml(Port, _slideInIntervalMs);
                     await SendHtmlResponseAsync(context, html);
                     return;
                 }
 
                 if (path == "/rotation.html")
                 {
-                    string html = _htmlProvider.GenerateRotationHtml(Port + 1, _rotationIntervalMs);
+                    string html = _htmlProvider.GenerateRotationHtml(Port, _rotationIntervalMs);
                     await SendHtmlResponseAsync(context, html);
                     return;
                 }
@@ -141,6 +150,12 @@ namespace CounterCounter.Server
             }
         }
 
+        private async Task HandleWebSocketAsync(HttpListenerContext context)
+        {
+            HttpListenerWebSocketContext wsContext = await context.AcceptWebSocketAsync(null);
+            await _wsHandler.HandleConnectionAsync(wsContext.WebSocket);
+        }
+
         private async Task SendHtmlResponseAsync(HttpListenerContext context, string html)
         {
             context.Response.ContentType = "text/html; charset=utf-8";
@@ -150,9 +165,15 @@ namespace CounterCounter.Server
             context.Response.Close();
         }
 
+        public void BroadcastNextRotation()
+        {
+            _wsHandler.BroadcastNextRotation();
+        }
+
         public void Dispose()
         {
             _isRunning = false;
+            _wsHandler?.Dispose();
             _listener?.Stop();
             _listener?.Close();
         }

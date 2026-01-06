@@ -5,9 +5,13 @@ using System.Windows;
 using CounterCounter.Core;
 using CounterCounter.Models;
 using CounterCounter.Server;
+using CounterCounter.UI.Dialogs;
 using CounterCounter.UI.Views;
 using WpfButton = System.Windows.Controls.Button;
-using WpfMessageBox = System.Windows.MessageBox;
+using WpfMessageBox = CounterCounter.UI.Dialogs.ModernMessageBox;
+using WpfMessageBoxButton = System.Windows.MessageBoxButton;
+using WpfMessageBoxImage = System.Windows.MessageBoxImage;
+using WpfMessageBoxResult = System.Windows.MessageBoxResult;
 using WpfColor = System.Windows.Media.Color;
 using WpfColorConverter = System.Windows.Media.ColorConverter;
 using WpfSolidColorBrush = System.Windows.Media.SolidColorBrush;
@@ -23,11 +27,9 @@ namespace CounterCounter.UI
         private readonly ConfigManager _configManager;
         private readonly CounterSettings _settings;
         private WebServer? _webServer;
-        private WebSocketServer? _wsServer;
         private HotkeyManager? _hotkeyManager;
         private IntPtr _hwnd;
         private int _httpPort;
-        private int _wsPort;
         private bool _isServerRunning;
 
         private CounterManagementView? _counterManagementView;
@@ -45,7 +47,6 @@ namespace CounterCounter.UI
             _configManager = configManager;
             _settings = settings;
             _httpPort = settings.ServerPort;
-            _wsPort = _httpPort + 1;
             _isServerRunning = false;
 
             UpdateServerToggleButton();
@@ -71,6 +72,12 @@ namespace CounterCounter.UI
             {
                 e.Cancel = true;
                 Hide();
+
+                var app = System.Windows.Application.Current as App;
+                app?.ShowTrayNotification(
+                    "Counter Counter",
+                    "ウィンドウを閉じました。タスクトレイから再表示できます。",
+                    3000);
             }
             else
             {
@@ -97,8 +104,8 @@ namespace CounterCounter.UI
                 WpfMessageBox.Show(
                     $"サーバーの起動に失敗しました: {ex.Message}",
                     "エラー",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error
+                    WpfMessageBoxButton.OK,
+                    WpfMessageBoxImage.Error
                 );
             }
         }
@@ -120,11 +127,11 @@ namespace CounterCounter.UI
                 var result = WpfMessageBox.Show(
                     "サーバーを停止しますか?\nOBSからの接続が切断されます。",
                     "確認",
-                    MessageBoxButton.YesNo,
-                    MessageBoxImage.Question
+                    WpfMessageBoxButton.YesNo,
+                    WpfMessageBoxImage.Question
                 );
 
-                if (result == MessageBoxResult.Yes)
+                if (result == WpfMessageBoxResult.Yes)
                 {
                     StopServer();
                 }
@@ -141,8 +148,8 @@ namespace CounterCounter.UI
                     WpfMessageBox.Show(
                         $"サーバーの起動に失敗しました: {ex.Message}",
                         "エラー",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Error
+                        WpfMessageBoxButton.OK,
+                        WpfMessageBoxImage.Error
                     );
                 }
             }
@@ -188,17 +195,8 @@ namespace CounterCounter.UI
                 _settings.Hotkeys,
                 _configManager,
                 _settings);
-            _counterManagementView.ForceDisplayRequested += OnForceDisplayRequested;
             ContentArea.Children.Clear();
             ContentArea.Children.Add(_counterManagementView);
-        }
-
-        private void OnForceDisplayRequested(object? sender, string counterId)
-        {
-            if (_wsServer != null)
-            {
-                _wsServer.BroadcastForceDisplay(counterId);
-            }
         }
 
         private void ShowServerSettingsView()
@@ -211,7 +209,7 @@ namespace CounterCounter.UI
 
         private void ShowConnectionInfoView()
         {
-            _connectionInfoView = new ConnectionInfoView(_httpPort, _wsPort, _isServerRunning);
+            _connectionInfoView = new ConnectionInfoView(_httpPort, _isServerRunning);
             ContentArea.Children.Clear();
             ContentArea.Children.Add(_connectionInfoView);
         }
@@ -223,11 +221,11 @@ namespace CounterCounter.UI
             _settings.ServerPort = _serverSettingsView.GetHttpPort();
             _settings.SlideInIntervalMs = _serverSettingsView.GetSlideInInterval();
             _settings.RotationIntervalMs = _serverSettingsView.GetRotationInterval();
+            _settings.NextRotationHotkey = _serverSettingsView.GetNextRotationHotkey();
 
             if (!_isServerRunning)
             {
                 _httpPort = _settings.ServerPort;
-                _wsPort = _httpPort + 1;
             }
 
             SaveSettings();
@@ -244,12 +242,8 @@ namespace CounterCounter.UI
             _webServer = new WebServer(_counterManager, _settings.RotationIntervalMs, _settings.SlideInIntervalMs);
             Task.Run(async () => await _webServer.StartAsync(port));
 
-            _wsServer = new WebSocketServer(_counterManager, port);
-            _wsServer.Start();
-
             _isServerRunning = true;
             _httpPort = port;
-            _wsPort = port + 1;
 
             UpdateServerToggleButton();
             UpdateServerStatus();
@@ -262,9 +256,6 @@ namespace CounterCounter.UI
         {
             _hotkeyManager?.Dispose();
             _hotkeyManager = null;
-
-            _wsServer?.Dispose();
-            _wsServer = null;
 
             _webServer?.Dispose();
             _webServer = null;
@@ -336,6 +327,20 @@ namespace CounterCounter.UI
                 }
             }
 
+            if (_settings.NextRotationHotkey != null)
+            {
+                bool success = _hotkeyManager.RegisterHotkey(
+                    "",
+                    HotkeyAction.NextRotation,
+                    _settings.NextRotationHotkey.Modifiers,
+                    _settings.NextRotationHotkey.VirtualKey);
+
+                if (!success)
+                {
+                    Console.WriteLine($"ローテーションホットキー登録失敗: {_settings.NextRotationHotkey.GetDisplayText()}");
+                }
+            }
+
             _hotkeyManager.HotkeyPressed += OnHotkeyPressed;
         }
 
@@ -351,6 +356,9 @@ namespace CounterCounter.UI
                     break;
                 case HotkeyAction.Reset:
                     _counterManager.Reset(e.CounterId);
+                    break;
+                case HotkeyAction.NextRotation:
+                    _webServer?.BroadcastNextRotation();
                     break;
             }
         }
@@ -385,7 +393,6 @@ namespace CounterCounter.UI
             SaveSettings();
 
             _hotkeyManager?.Dispose();
-            _wsServer?.Dispose();
             _webServer?.Dispose();
         }
     }

@@ -34,9 +34,9 @@ function connectWebSocket() {
         } else if (data.type === 'counter_update') {
             console.log('Rotation Display: Counter update received', data);
             updateCounter(data);
-        } else if (data.type === 'force_display') {
-            console.log('Rotation Display: Force display received', data);
-            forceDisplayCounter(data);
+        } else if (data.type === 'next_rotation') {
+            console.log('Rotation Display: Next rotation triggered');
+            rotateToNext();
         }
     };
 
@@ -106,12 +106,16 @@ function startRotation() {
     stopRotation();
 
     rotationInterval = setInterval(() => {
-        currentIndex = (currentIndex + 1) % counters.length;
-        showCounter(currentIndex);
-        console.log('Rotation Display: Switched to counter index', currentIndex);
+        rotateToNext();
     }, intervalDuration);
 
     console.log('Rotation Display: Rotation started with interval', intervalDuration, 'ms');
+}
+
+function rotateToNext() {
+    currentIndex = (currentIndex + 1) % counters.length;
+    showCounter(currentIndex);
+    console.log('Rotation Display: Switched to counter index', currentIndex);
 }
 
 function stopRotation() {
@@ -164,18 +168,6 @@ function updateCounter(data) {
             renderCounters();
             startRotation();
         }
-    }
-}
-
-function forceDisplayCounter(data) {
-    console.log('Rotation Display: Force displaying counter', data.counterId);
-
-    const index = counters.findIndex(c => c.Id === data.counterId);
-    if (index !== -1) {
-        stopRotation();
-        currentIndex = index;
-        showCounter(currentIndex);
-        startRotation();
     }
 }
 

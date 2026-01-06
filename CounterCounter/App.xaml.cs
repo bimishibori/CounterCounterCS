@@ -88,6 +88,11 @@ namespace CounterCounter
             _trayIcon?.UpdateServerStatus(isRunning, httpPort);
         }
 
+        public void ShowTrayNotification(string title, string message, int timeoutMs = 3000)
+        {
+            _trayIcon?.ShowNotification(title, message, timeoutMs);
+        }
+
         protected override void OnExit(ExitEventArgs e)
         {
             if (_settings != null && _counterManager != null && _configManager != null)

@@ -1,8 +1,13 @@
 ﻿// CounterCounter/UI/Infrastructure/TrayIcon.cs
 using CounterCounter.Core;
 using CounterCounter.Models;
+using CounterCounter.UI.Dialogs;
 using WinForms = System.Windows.Forms;
 using WpfClipboard = System.Windows.Clipboard;
+using WpfMessageBox = CounterCounter.UI.Dialogs.ModernMessageBox;
+using WpfMessageBoxButton = System.Windows.MessageBoxButton;
+using WpfMessageBoxImage = System.Windows.MessageBoxImage;
+using WpfMessageBoxResult = System.Windows.MessageBoxResult;
 
 namespace CounterCounter.UI.Infrastructure
 {
@@ -59,14 +64,14 @@ namespace CounterCounter.UI.Infrastructure
         {
             if (_isServerRunning)
             {
-                var result = WinForms.MessageBox.Show(
-                    "サーバーを停止しますか？\nOBSからの接続が切断されます。",
+                var result = WpfMessageBox.Show(
+                    "サーバーを停止しますか?\nOBSからの接続が切断されます。",
                     "確認",
-                    WinForms.MessageBoxButtons.YesNo,
-                    WinForms.MessageBoxIcon.Question
+                    WpfMessageBoxButton.YesNo,
+                    WpfMessageBoxImage.Question
                 );
 
-                if (result == WinForms.DialogResult.Yes)
+                if (result == WpfMessageBoxResult.Yes)
                 {
                     ServerStopRequested?.Invoke(this, EventArgs.Empty);
                 }
@@ -96,15 +101,20 @@ namespace CounterCounter.UI.Infrastructure
             }
         }
 
+        public void ShowNotification(string title, string message, int timeoutMs = 3000)
+        {
+            _notifyIcon.ShowBalloonTip(timeoutMs, title, message, WinForms.ToolTipIcon.Info);
+        }
+
         private void CopyObsUrl(object? sender, EventArgs e)
         {
             if (!_isServerRunning)
             {
-                WinForms.MessageBox.Show(
+                WpfMessageBox.Show(
                     "サーバーが起動していません。\n先にサーバーを起動してください。",
                     "エラー",
-                    WinForms.MessageBoxButtons.OK,
-                    WinForms.MessageBoxIcon.Warning
+                    WpfMessageBoxButton.OK,
+                    WpfMessageBoxImage.Warning
                 );
                 return;
             }
@@ -112,11 +122,11 @@ namespace CounterCounter.UI.Infrastructure
             int port = _settings.ServerPort;
             WpfClipboard.SetText($"http://localhost:{port}/obs.html");
 
-            WinForms.MessageBox.Show(
+            WpfMessageBox.Show(
                 "URLをクリップボードにコピーしました",
                 "コピー完了",
-                WinForms.MessageBoxButtons.OK,
-                WinForms.MessageBoxIcon.Information
+                WpfMessageBoxButton.OK,
+                WpfMessageBoxImage.Information
             );
         }
 

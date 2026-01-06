@@ -89,6 +89,7 @@ namespace CounterCounter.Models
     {
         Increment,
         Decrement,
-        Reset
+        Reset,
+        NextRotation
     }
 }
