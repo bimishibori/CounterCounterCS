@@ -15,33 +15,16 @@
             </Setter>
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="15,10"/>
-            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="FontSize" Value="14"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}"
-                                CornerRadius="6"
-                                Padding="{TemplateBinding Padding}">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="4" Padding="{TemplateBinding Padding}">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background">
-                                    <Setter.Value>
-                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                            <GradientStop Color="#33e0ff" Offset="0"/>
-                                            <GradientStop Color="#0099ff" Offset="1"/>
-                                        </LinearGradientBrush>
-                                    </Setter.Value>
-                                </Setter>
-                            </Trigger>
-                            <Trigger Property="IsEnabled" Value="False">
-                                <Setter Property="Opacity" Value="0.4"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
@@ -49,78 +32,78 @@
     </UserControl.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <StackPanel Margin="30">
-            <TextBlock Text="サーバー設定" FontSize="28" FontWeight="Bold" Foreground="#00d4ff" Margin="0,0,0,30"/>
+        <StackPanel Margin="20">
+            <TextBlock Text="サーバー設定" FontSize="26" FontWeight="Bold" Foreground="#00d4ff" Margin="0,0,0,20"/>
 
-            <Border Background="#1a1a1a" CornerRadius="12" Padding="30" Margin="0,0,0,20">
+            <Border Background="#1a1a1a" CornerRadius="8" Padding="15" Margin="0,0,0,12">
                 <Border.Effect>
-                    <DropShadowEffect Color="Black" BlurRadius="20" ShadowDepth="5" Opacity="0.5"/>
+                    <DropShadowEffect Color="Black" BlurRadius="10" ShadowDepth="2" Opacity="0.4"/>
                 </Border.Effect>
                 <StackPanel>
-                    <TextBlock Text="ポート設定" FontSize="20" FontWeight="Bold" Foreground="#e0e0e0" Margin="0,0,0,15"/>
-
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
-                        <TextBlock Text="ポート番号:" VerticalAlignment="Center" Width="150" Foreground="#e0e0e0"/>
-                        <TextBox x:Name="PortTextBox" Width="150" Padding="10" FontSize="14" 
+                    <TextBlock Text="ポート設定" FontSize="18" FontWeight="Bold" Foreground="#e0e0e0" Margin="0,0,0,12"/>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="ポート番号:" VerticalAlignment="Center" Width="130" Foreground="#e0e0e0" FontSize="14"/>
+                        <TextBox x:Name="PortTextBox" Width="100" Padding="8" FontSize="14" 
                                  Background="#0d0d0d" Foreground="#e0e0e0" BorderBrush="#333333"
                                  TextChanged="PortTextBox_TextChanged"/>
+
                         <TextBlock x:Name="PortWarningText" Text="（サーバー起動中は変更不可）" 
                                    VerticalAlignment="Center" Margin="15,0,0,0" 
-                                   Foreground="#ff6b6b" FontSize="12" Visibility="Collapsed"/>
+                                   Foreground="#ff6b6b" FontSize="14" FontWeight="SemiBold" Visibility="Collapsed"/>
                     </StackPanel>
                 </StackPanel>
             </Border>
 
-            <Border Background="#1a1a1a" CornerRadius="12" Padding="30" Margin="0,0,0,20">
+            <Border Background="#1a1a1a" CornerRadius="8" Padding="15" Margin="0,0,0,12">
                 <Border.Effect>
-                    <DropShadowEffect Color="Black" BlurRadius="20" ShadowDepth="5" Opacity="0.5"/>
+                    <DropShadowEffect Color="Black" BlurRadius="10" ShadowDepth="2" Opacity="0.4"/>
                 </Border.Effect>
                 <StackPanel>
-                    <TextBlock Text="スライドイン設定" FontSize="20" FontWeight="Bold" Foreground="#e0e0e0" Margin="0,0,0,15"/>
-
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
-                        <TextBlock Text="表示間隔 (ミリ秒):" VerticalAlignment="Center" Width="150" Foreground="#e0e0e0"/>
-                        <TextBox x:Name="SlideInTextBox" Width="150" Padding="10" FontSize="14" 
+                    <TextBlock Text="スライドイン設定" FontSize="18" FontWeight="Bold" Foreground="#e0e0e0" Margin="0,0,0,12"/>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="表示間隔 (ms):" VerticalAlignment="Center" Width="130" Foreground="#e0e0e0" FontSize="14"/>
+                        <TextBox x:Name="SlideInTextBox" Width="100" Padding="8" FontSize="14" 
                                  Background="#0d0d0d" Foreground="#e0e0e0" BorderBrush="#333333"
                                  TextChanged="SlideInTextBox_TextChanged"/>
+
                         <TextBlock x:Name="SlideInWarningText" Text="（サーバー起動中は変更不可）" 
                                    VerticalAlignment="Center" Margin="15,0,0,0" 
-                                   Foreground="#ff6b6b" FontSize="12" Visibility="Collapsed"/>
-                    </StackPanel>
+                                   Foreground="#ff6b6b" FontSize="14" FontWeight="SemiBold" Visibility="Collapsed"/>
 
-                    <TextBlock Text="例: 5000 = 5秒間隔" FontSize="12" Foreground="#808080" Margin="150,0,0,0"/>
+                        <TextBlock Text="例: 5000 = 5秒" FontSize="13" Foreground="#999999" VerticalAlignment="Center" Margin="15,0,0,0"/>
+                    </StackPanel>
                 </StackPanel>
             </Border>
 
-            <Border Background="#1a1a1a" CornerRadius="12" Padding="30" Margin="0,0,0,20">
+            <Border Background="#1a1a1a" CornerRadius="8" Padding="15" Margin="0,0,0,12">
                 <Border.Effect>
-                    <DropShadowEffect Color="Black" BlurRadius="20" ShadowDepth="5" Opacity="0.5"/>
+                    <DropShadowEffect Color="Black" BlurRadius="10" ShadowDepth="2" Opacity="0.4"/>
                 </Border.Effect>
                 <StackPanel>
-                    <TextBlock Text="ローテーション設定" FontSize="20" FontWeight="Bold" Foreground="#e0e0e0" Margin="0,0,0,15"/>
+                    <TextBlock Text="ローテーション設定" FontSize="18" FontWeight="Bold" Foreground="#e0e0e0" Margin="0,0,0,12"/>
 
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
-                        <TextBlock Text="表示間隔 (ミリ秒):" VerticalAlignment="Center" Width="150" Foreground="#e0e0e0"/>
-                        <TextBox x:Name="RotationTextBox" Width="150" Padding="10" FontSize="14" 
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
+                        <TextBlock Text="表示間隔 (ms):" VerticalAlignment="Center" Width="130" Foreground="#e0e0e0" FontSize="14"/>
+                        <TextBox x:Name="RotationTextBox" Width="100" Padding="8" FontSize="14" 
                                  Background="#0d0d0d" Foreground="#e0e0e0" BorderBrush="#333333"
                                  TextChanged="RotationTextBox_TextChanged"/>
+
                         <TextBlock x:Name="RotationWarningText" Text="（サーバー起動中は変更不可）" 
                                    VerticalAlignment="Center" Margin="15,0,0,0" 
-                                   Foreground="#ff6b6b" FontSize="12" Visibility="Collapsed"/>
+                                   Foreground="#ff6b6b" FontSize="14" FontWeight="SemiBold" Visibility="Collapsed"/>
+
+                        <TextBlock Text="例: 5000 = 5秒" FontSize="13" Foreground="#999999" VerticalAlignment="Center" Margin="15,0,0,0"/>
                     </StackPanel>
 
-                    <TextBlock Text="例: 5000 = 5秒間隔" FontSize="12" Foreground="#808080" Margin="150,0,0,10"/>
+                    <Separator Background="#333333" Margin="0,5,0,15"/>
 
-                    <TextBlock Text="ローテーション切り替えホットキー" FontSize="16" FontWeight="Bold" 
-                               Foreground="#e0e0e0" Margin="0,20,0,15"/>
-
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                        <ComboBox x:Name="RotationKey1" Width="110" Margin="5,0,5,0" SelectionChanged="RotationHotkey_Changed"/>
-                        <ComboBox x:Name="RotationKey2" Width="110" Margin="5,0,5,0" SelectionChanged="RotationHotkey_Changed"/>
-                        <ComboBox x:Name="RotationKey3" Width="110" Margin="5,0,5,0" SelectionChanged="RotationHotkey_Changed"/>
+                    <TextBlock Text="切り替えホットキー" FontSize="16" FontWeight="Bold" Foreground="#e0e0e0" Margin="0,0,0,12"/>
+                    <StackPanel Orientation="Horizontal">
+                        <ComboBox x:Name="RotationKey1" Width="110" Margin="0,0,8,0" SelectionChanged="RotationHotkey_Changed"/>
+                        <ComboBox x:Name="RotationKey2" Width="110" Margin="8,0,8,0" SelectionChanged="RotationHotkey_Changed"/>
+                        <ComboBox x:Name="RotationKey3" Width="110" Margin="8,0,0,0" SelectionChanged="RotationHotkey_Changed"/>
                     </StackPanel>
-
-                    <TextBlock Text="ゲーム中でも次のカウンターに切り替え可能" FontSize="12" Foreground="#808080" Margin="5,0,0,0"/>
+                    <TextBlock Text="ゲーム中でも次のカウンターに切り替え可能" FontSize="13" Foreground="#888888" Margin="0,10,0,0"/>
                 </StackPanel>
             </Border>
         </StackPanel>

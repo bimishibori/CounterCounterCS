@@ -37,6 +37,9 @@ function connectWebSocket() {
         } else if (data.type === 'next_rotation') {
             console.log('Rotation Display: Next rotation triggered');
             rotateToNext();
+        } else if (data.type === 'force_display') {
+            console.log('Rotation Display: Force display requested for', data.counterId);
+            forceDisplay(data.counterId);
         }
     };
 

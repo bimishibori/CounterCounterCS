@@ -7,7 +7,7 @@
         Background="#0f0f0f"
         Closing="Window_Closing"
         ResizeMode="CanResize"
-        MinWidth="900" MinHeight="650">
+        MinWidth="1080" MinHeight="720">
 
     <Window.Resources>
         <Style x:Key="ModernButton" TargetType="Button">
