@@ -1,4 +1,5 @@
-﻿let ws = null;
+﻿// CounterCounter/wwwroot/js/rotation.js
+let ws = null;
 let counters = [];
 let currentIndex = 0;
 let rotationInterval = null;
@@ -76,8 +77,10 @@ function renderCounters() {
         div.className = 'counter-item';
         div.id = `counter-${counter.Id}`;
         div.innerHTML = `
-            <div class="counter-name" style="color: ${counter.Color}">${escapeHtml(counter.Name)}</div>
-            <div class="counter-value" style="color: ${counter.Color}">${counter.Value}</div>
+            <div class="counter-display-line">
+                <div class="counter-name" style="color: ${counter.Color}">${escapeHtml(counter.Name)}</div>
+                <div class="counter-value" style="color: ${counter.Color}">${counter.Value}</div>
+            </div>
         `;
         container.appendChild(div);
     });
@@ -127,21 +130,6 @@ function stopRotation() {
         rotationInterval = null;
         console.log('Rotation Display: Rotation stopped');
     }
-}
-
-function forceDisplay(counterId) {
-    const index = counters.findIndex(c => c.Id === counterId);
-    if (index === -1) {
-        console.warn('Rotation Display: Counter not found for force display', counterId);
-        return;
-    }
-
-    stopRotation();
-    currentIndex = index;
-    showCounter(currentIndex);
-    console.log('Rotation Display: Force displayed counter', counterId, 'at index', index);
-
-    startRotation();
 }
 
 function updateCounter(data) {
