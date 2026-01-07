@@ -11,6 +11,7 @@ namespace CounterCounter.UI.Views
     {
         private readonly CounterSettings _settings;
         private bool _isServerRunning;
+        private bool _isInitializing;
 
         public event EventHandler? SettingsChanged;
 
@@ -19,8 +20,10 @@ namespace CounterCounter.UI.Views
             InitializeComponent();
             _settings = settings;
             _isServerRunning = isServerRunning;
+            _isInitializing = true;
             InitializeRotationHotkeyComboBoxes();
             UpdateUI();
+            _isInitializing = false;
         }
 
         private void InitializeRotationHotkeyComboBoxes()
@@ -37,6 +40,8 @@ namespace CounterCounter.UI.Views
 
         private void LoadRotationHotkey()
         {
+            Console.WriteLine($"[ServerSettingsView] LoadRotationHotkey: {_settings.NextRotationHotkey?.GetDisplayText() ?? "null"}");
+
             if (_settings.NextRotationHotkey != null)
             {
                 var keys = ParseHotkeyToKeys(
@@ -46,12 +51,16 @@ namespace CounterCounter.UI.Views
                 SetComboBoxByTag(RotationKey1, keys.Length > 0 ? keys[0] : 0);
                 SetComboBoxByTag(RotationKey2, keys.Length > 1 ? keys[1] : 0);
                 SetComboBoxByTag(RotationKey3, keys.Length > 2 ? keys[2] : 0);
+
+                Console.WriteLine($"[ServerSettingsView] Loaded keys: {string.Join(", ", keys.Select(k => $"0x{k:X}"))}");
             }
             else
             {
                 SetComboBoxByTag(RotationKey1, 0);
                 SetComboBoxByTag(RotationKey2, 0);
                 SetComboBoxByTag(RotationKey3, 0);
+
+                Console.WriteLine("[ServerSettingsView] No hotkey to load, cleared all");
             }
         }
 
@@ -140,6 +149,8 @@ namespace CounterCounter.UI.Views
 
         private void PortTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
+            if (_isInitializing) return;
+
             if (int.TryParse(PortTextBox.Text, out int port) && port >= 1024 && port <= 65535)
             {
                 _settings.ServerPort = port;
@@ -149,6 +160,8 @@ namespace CounterCounter.UI.Views
 
         private void SlideInTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
+            if (_isInitializing) return;
+
             if (int.TryParse(SlideInTextBox.Text, out int interval) && interval >= 1000)
             {
                 _settings.SlideInIntervalMs = interval;
@@ -158,6 +171,8 @@ namespace CounterCounter.UI.Views
 
         private void RotationTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
+            if (_isInitializing) return;
+
             if (int.TryParse(RotationTextBox.Text, out int interval) && interval >= 1000)
             {
                 _settings.RotationIntervalMs = interval;
@@ -167,10 +182,15 @@ namespace CounterCounter.UI.Views
 
         private void RotationHotkey_Changed(object sender, SelectionChangedEventArgs e)
         {
+            if (_isInitializing) return;
+
             var keys = ExtractKeysFromComboBoxes();
+            Console.WriteLine($"[ServerSettingsView] RotationHotkey_Changed: keys count = {keys.Count}");
+
             if (keys.Count == 0)
             {
                 _settings.NextRotationHotkey = null;
+                Console.WriteLine("[ServerSettingsView] RotationHotkey set to null");
             }
             else
             {
@@ -193,10 +213,12 @@ namespace CounterCounter.UI.Views
                 {
                     _settings.NextRotationHotkey = new HotkeySettings(
                         "", HotkeyAction.NextRotation, modifiers, virtualKey);
+                    Console.WriteLine($"[ServerSettingsView] RotationHotkey set: {_settings.NextRotationHotkey.GetDisplayText()}");
                 }
                 else
                 {
                     _settings.NextRotationHotkey = null;
+                    Console.WriteLine("[ServerSettingsView] RotationHotkey set to null (no virtual key)");
                 }
             }
 

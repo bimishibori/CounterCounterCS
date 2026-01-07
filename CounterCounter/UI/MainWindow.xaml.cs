@@ -252,6 +252,7 @@ namespace CounterCounter.UI
                 _httpPort = _settings.ServerPort;
             }
 
+            Console.WriteLine($"[MainWindow] RotationHotkey updated: {_settings.NextRotationHotkey?.GetDisplayText() ?? "null"}");
             SaveSettings();
         }
 
@@ -370,10 +371,14 @@ namespace CounterCounter.UI
                 {
                     Console.WriteLine($"ローテーションホットキー登録失敗: {_settings.NextRotationHotkey.GetDisplayText()}");
                 }
+                else
+                {
+                    Console.WriteLine($"[MainWindow] ローテーションホットキー登録成功: {_settings.NextRotationHotkey.GetDisplayText()}");
+                }
             }
             else
             {
-                Console.WriteLine("ローテーションホットキー: 未設定");
+                Console.WriteLine("[MainWindow] ローテーションホットキー: 未設定");
             }
 
             _hotkeyManager.HotkeyPressed += OnHotkeyPressed;
@@ -393,6 +398,7 @@ namespace CounterCounter.UI
                     _counterManager.Reset(e.CounterId);
                     break;
                 case HotkeyAction.NextRotation:
+                    Console.WriteLine("[MainWindow] NextRotation hotkey pressed!");
                     _webServer?.BroadcastNextRotation();
                     break;
             }
@@ -415,7 +421,16 @@ namespace CounterCounter.UI
         private void SaveSettings()
         {
             _settings.Counters = _counterManager.GetAllCounters();
-            _configManager.Save(_settings);
+
+            bool saved = _configManager.Save(_settings);
+            if (saved)
+            {
+                Console.WriteLine($"[MainWindow] Settings saved successfully. RotationHotkey: {_settings.NextRotationHotkey?.GetDisplayText() ?? "null"}");
+            }
+            else
+            {
+                Console.WriteLine("[MainWindow] Failed to save settings");
+            }
         }
 
         protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)

@@ -23,6 +23,7 @@ namespace CounterCounter.Core
         {
             if (!File.Exists(_configPath))
             {
+                Console.WriteLine($"[ConfigManager] Config file not found, creating default: {_configPath}");
                 return CounterSettings.CreateDefault();
             }
 
@@ -30,7 +31,17 @@ namespace CounterCounter.Core
             {
                 string json = File.ReadAllText(_configPath);
                 var settings = JsonSerializer.Deserialize<CounterSettings>(json);
-                return settings ?? CounterSettings.CreateDefault();
+
+                if (settings == null)
+                {
+                    Console.WriteLine("[ConfigManager] Deserialization returned null, using default");
+                    return CounterSettings.CreateDefault();
+                }
+
+                Console.WriteLine($"[ConfigManager] Loaded from {_configPath}");
+                Console.WriteLine($"[ConfigManager] NextRotationHotkey: {settings.NextRotationHotkey?.GetDisplayText() ?? "null"}");
+
+                return settings;
             }
             catch (Exception ex)
             {
@@ -49,6 +60,10 @@ namespace CounterCounter.Core
                 };
                 string json = JsonSerializer.Serialize(settings, options);
                 File.WriteAllText(_configPath, json);
+
+                Console.WriteLine($"[ConfigManager] Saved to {_configPath}");
+                Console.WriteLine($"[ConfigManager] NextRotationHotkey: {settings.NextRotationHotkey?.GetDisplayText() ?? "null"}");
+
                 return true;
             }
             catch (Exception ex)

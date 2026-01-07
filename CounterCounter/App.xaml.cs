@@ -98,7 +98,8 @@ namespace CounterCounter
             if (_settings != null && _counterManager != null && _configManager != null)
             {
                 _settings.Counters = _counterManager.GetAllCounters();
-                _configManager.Save(_settings);
+                bool saved = _configManager.Save(_settings);
+                Console.WriteLine($"[App] OnExit: Settings saved = {saved}, RotationHotkey = {_settings.NextRotationHotkey?.GetDisplayText() ?? "null"}");
             }
 
             _mainWindow?.Cleanup();
