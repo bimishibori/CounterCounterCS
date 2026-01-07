@@ -1,5 +1,4 @@
 ﻿// CounterCounter/UI/Infrastructure/TrayIcon.cs
-using CounterCounter.Core;
 using CounterCounter.Models;
 using CounterCounter.UI.Dialogs;
 using WinForms = System.Windows.Forms;
@@ -9,7 +8,7 @@ using WpfMessageBoxButton = System.Windows.MessageBoxButton;
 using WpfMessageBoxImage = System.Windows.MessageBoxImage;
 using WpfMessageBoxResult = System.Windows.MessageBoxResult;
 
-namespace CounterCounter.UI.Infrastructure
+namespace CounterCounter.Core
 {
     public class TrayIcon : IDisposable
     {

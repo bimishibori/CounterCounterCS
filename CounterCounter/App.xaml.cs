@@ -4,7 +4,6 @@ using System.Windows.Interop;
 using CounterCounter.Core;
 using CounterCounter.Models;
 using CounterCounter.UI;
-using CounterCounter.UI.Infrastructure;
 using WpfApp = System.Windows.Application;
 
 namespace CounterCounter
