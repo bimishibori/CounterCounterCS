@@ -1,5 +1,6 @@
 ﻿// CounterCounter/UI/MainWindow.xaml.cs
 using System.ComponentModel;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using CounterCounter.Core;
@@ -7,6 +8,8 @@ using CounterCounter.Models;
 using CounterCounter.Server;
 using CounterCounter.UI.Dialogs;
 using CounterCounter.UI.Views;
+using WpfOpenFileDialog = Microsoft.Win32.OpenFileDialog;
+using WpfSaveFileDialog = Microsoft.Win32.SaveFileDialog;
 using WpfButton = System.Windows.Controls.Button;
 using WpfMessageBox = CounterCounter.UI.Dialogs.ModernMessageBox;
 using WpfMessageBoxButton = System.Windows.MessageBoxButton;
@@ -25,12 +28,15 @@ namespace CounterCounter.UI
     {
         private readonly CounterManager _counterManager;
         private readonly ConfigManager _configManager;
-        private readonly CounterSettings _settings;
+        private CounterSettings _settings;
+        private AppSettings _appSettings;
         private WebServer? _webServer;
         private HotkeyManager? _hotkeyManager;
         private IntPtr _hwnd;
         private int _httpPort;
         private bool _isServerRunning;
+        private bool _hasUnsavedChanges;
+        private bool _hasFilePath;
 
         private CounterManagementView? _counterManagementView;
         private ServerSettingsView? _serverSettingsView;
@@ -38,7 +44,7 @@ namespace CounterCounter.UI
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        public MainWindow(CounterManager counterManager, ConfigManager configManager, CounterSettings settings)
+        public MainWindow(CounterManager counterManager, ConfigManager configManager, CounterSettings settings, AppSettings appSettings)
         {
             InitializeComponent();
             DataContext = this;
@@ -46,11 +52,25 @@ namespace CounterCounter.UI
             _counterManager = counterManager;
             _configManager = configManager;
             _settings = settings;
+            _appSettings = appSettings;
             _httpPort = settings.ServerPort;
             _isServerRunning = false;
+            _hasUnsavedChanges = false;
+
+            if (string.IsNullOrEmpty(_appSettings.LastOpenedFilePath) ||
+                !File.Exists(_appSettings.LastOpenedFilePath))
+            {
+                _hasFilePath = false;
+            }
+            else
+            {
+                _hasFilePath = true;
+            }
 
             UpdateServerToggleButton();
             UpdateServerStatus();
+            UpdateCurrentFileDisplay();
+            UpdateSaveMenuState();
             ShowCountersView();
         }
 
@@ -68,6 +88,27 @@ namespace CounterCounter.UI
 
         private void Window_Closing(object sender, CancelEventArgs e)
         {
+            if (_hasUnsavedChanges)
+            {
+                var result = WpfMessageBox.Show(
+                    "保存されていない変更があります。保存しますか？",
+                    "確認",
+                    WpfMessageBoxButton.YesNoCancel,
+                    WpfMessageBoxImage.Question,
+                    this
+                );
+
+                if (result == WpfMessageBoxResult.Yes)
+                {
+                    SaveSettings();
+                }
+                else if (result == WpfMessageBoxResult.Cancel)
+                {
+                    e.Cancel = true;
+                    return;
+                }
+            }
+
             if (_isServerRunning)
             {
                 e.Cancel = true;
@@ -81,10 +122,265 @@ namespace CounterCounter.UI
             }
             else
             {
-                SaveSettings();
                 e.Cancel = false;
                 System.Windows.Application.Current.Shutdown();
             }
+        }
+
+        private void NewFile_Click(object sender, RoutedEventArgs e)
+        {
+            if (_hasUnsavedChanges)
+            {
+                var result = WpfMessageBox.Show(
+                    "保存されていない変更があります。保存しますか？",
+                    "確認",
+                    WpfMessageBoxButton.YesNoCancel,
+                    WpfMessageBoxImage.Question,
+                    this
+                );
+
+                if (result == WpfMessageBoxResult.Yes)
+                {
+                    SaveSettings();
+                }
+                else if (result == WpfMessageBoxResult.Cancel)
+                {
+                    return;
+                }
+            }
+
+            if (_isServerRunning)
+            {
+                WpfMessageBox.Show(
+                    "サーバー起動中は新規作成できません。\n先にサーバーを停止してください。",
+                    "エラー",
+                    WpfMessageBoxButton.OK,
+                    WpfMessageBoxImage.Warning,
+                    this
+                );
+                return;
+            }
+
+            _settings = CounterSettings.CreateDefault();
+            _counterManager.LoadCounters(_settings.Counters);
+            _configManager.ResetToDefault();
+            _hasUnsavedChanges = false;
+            _hasFilePath = false;
+
+            _appSettings.LastOpenedFilePath = null;
+            _configManager.SaveAppSettings(_appSettings);
+
+            UpdateCurrentFileDisplay();
+            UpdateSaveMenuState();
+            RefreshAllViews();
+
+            WpfMessageBox.Show(
+                "新規ファイルを作成しました",
+                "完了",
+                WpfMessageBoxButton.OK,
+                WpfMessageBoxImage.Information,
+                this
+            );
+        }
+
+        private void OpenFile_Click(object sender, RoutedEventArgs e)
+        {
+            if (_hasUnsavedChanges)
+            {
+                var result = WpfMessageBox.Show(
+                    "保存されていない変更があります。保存しますか？",
+                    "確認",
+                    WpfMessageBoxButton.YesNoCancel,
+                    WpfMessageBoxImage.Question,
+                    this
+                );
+
+                if (result == WpfMessageBoxResult.Yes)
+                {
+                    SaveSettings();
+                }
+                else if (result == WpfMessageBoxResult.Cancel)
+                {
+                    return;
+                }
+            }
+
+            if (_isServerRunning)
+            {
+                WpfMessageBox.Show(
+                    "サーバー起動中はファイルを開けません。\n先にサーバーを停止してください。",
+                    "エラー",
+                    WpfMessageBoxButton.OK,
+                    WpfMessageBoxImage.Warning,
+                    this
+                );
+                return;
+            }
+
+            var openFileDialog = new WpfOpenFileDialog
+            {
+                Title = "設定ファイルを開く",
+                Filter = "JSONファイル (*.json)|*.json|すべてのファイル (*.*)|*.*",
+                DefaultExt = "json"
+            };
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                try
+                {
+                    _settings = _configManager.LoadFromFile(openFileDialog.FileName);
+                    _counterManager.LoadCounters(_settings.Counters);
+                    _httpPort = _settings.ServerPort;
+                    _hasUnsavedChanges = false;
+                    _hasFilePath = true;
+
+                    _appSettings.LastOpenedFilePath = openFileDialog.FileName;
+                    _configManager.SaveAppSettings(_appSettings);
+
+                    UpdateCurrentFileDisplay();
+                    UpdateSaveMenuState();
+                    RefreshAllViews();
+
+                    WpfMessageBox.Show(
+                        $"ファイルを読み込みました\n{openFileDialog.FileName}",
+                        "完了",
+                        WpfMessageBoxButton.OK,
+                        WpfMessageBoxImage.Information,
+                        this
+                    );
+                }
+                catch (Exception ex)
+                {
+                    WpfMessageBox.Show(
+                        $"ファイルの読み込みに失敗しました\n{ex.Message}",
+                        "エラー",
+                        WpfMessageBoxButton.OK,
+                        WpfMessageBoxImage.Error,
+                        this
+                    );
+                }
+            }
+        }
+
+        private void SaveFile_Click(object sender, RoutedEventArgs e)
+        {
+            if (!_hasFilePath)
+            {
+                SaveAsFile_Click(sender, e);
+                return;
+            }
+
+            SaveSettings();
+
+            WpfMessageBox.Show(
+                $"保存しました\n{_configManager.CurrentConfigPath}",
+                "完了",
+                WpfMessageBoxButton.OK,
+                WpfMessageBoxImage.Information,
+                this
+            );
+        }
+
+        private void SaveAsFile_Click(object sender, RoutedEventArgs e)
+        {
+            var saveFileDialog = new WpfSaveFileDialog
+            {
+                Title = "名前をつけて保存",
+                Filter = "JSONファイル (*.json)|*.json|すべてのファイル (*.*)|*.*",
+                DefaultExt = "json",
+                FileName = "config.json"
+            };
+
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                try
+                {
+                    _settings.Counters = _counterManager.GetAllCounters();
+                    bool saved = _configManager.SaveToFile(_settings, saveFileDialog.FileName);
+
+                    if (saved)
+                    {
+                        _hasUnsavedChanges = false;
+                        _hasFilePath = true;
+
+                        _appSettings.LastOpenedFilePath = saveFileDialog.FileName;
+                        _configManager.SaveAppSettings(_appSettings);
+
+                        UpdateCurrentFileDisplay();
+                        UpdateSaveMenuState();
+
+                        WpfMessageBox.Show(
+                            $"保存しました\n{saveFileDialog.FileName}",
+                            "完了",
+                            WpfMessageBoxButton.OK,
+                            WpfMessageBoxImage.Information,
+                            this
+                        );
+                    }
+                    else
+                    {
+                        WpfMessageBox.Show(
+                            "ファイルの保存に失敗しました",
+                            "エラー",
+                            WpfMessageBoxButton.OK,
+                            WpfMessageBoxImage.Error,
+                            this
+                        );
+                    }
+                }
+                catch (Exception ex)
+                {
+                    WpfMessageBox.Show(
+                        $"ファイルの保存に失敗しました\n{ex.Message}",
+                        "エラー",
+                        WpfMessageBoxButton.OK,
+                        WpfMessageBoxImage.Error,
+                        this
+                    );
+                }
+            }
+        }
+
+        private void Exit_Click(object sender, RoutedEventArgs e)
+        {
+            Close();
+        }
+
+        private void About_Click(object sender, RoutedEventArgs e)
+        {
+            WpfMessageBox.Show(
+                "Counter Counter v1.0.0\n\nOBS配信者向けリアルタイムカウンターアプリケーション\n\nMade with ❤️ for Streamers",
+                "バージョン情報",
+                WpfMessageBoxButton.OK,
+                WpfMessageBoxImage.Information,
+                this
+            );
+        }
+
+        private void UpdateCurrentFileDisplay()
+        {
+            string fileName = Path.GetFileName(_configManager.CurrentConfigPath);
+            CurrentFileText.Text = fileName;
+        }
+
+        private void UpdateSaveMenuState()
+        {
+            SaveMenuItem.IsEnabled = _hasFilePath;
+        }
+
+        private void RefreshAllViews()
+        {
+            _counterManagementView = null;
+            _serverSettingsView = null;
+            _connectionInfoView = null;
+
+            ShowCountersView();
+        }
+
+        private void MarkAsModified()
+        {
+            _hasUnsavedChanges = true;
+            UpdateSaveMenuState();
         }
 
         public void StartServerFromTray()
@@ -253,6 +549,7 @@ namespace CounterCounter.UI
             }
 
             Console.WriteLine($"[MainWindow] RotationHotkey updated: {_settings.NextRotationHotkey?.GetDisplayText() ?? "null"}");
+            MarkAsModified();
             SaveSettings();
         }
 
@@ -425,6 +722,14 @@ namespace CounterCounter.UI
             bool saved = _configManager.Save(_settings);
             if (saved)
             {
+                _hasUnsavedChanges = false;
+
+                if (_hasFilePath)
+                {
+                    _appSettings.LastOpenedFilePath = _configManager.CurrentConfigPath;
+                    _configManager.SaveAppSettings(_appSettings);
+                }
+
                 Console.WriteLine($"[MainWindow] Settings saved successfully. RotationHotkey: {_settings.NextRotationHotkey?.GetDisplayText() ?? "null"}");
             }
             else

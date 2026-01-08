@@ -19,12 +19,33 @@ namespace CounterCounter
 
         public CounterSettings? Settings => _settings;
 
+
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
 
             _configManager = new ConfigManager();
-            _settings = _configManager.Load();
+            var appSettings = _configManager.LoadAppSettings();
+
+            if (!string.IsNullOrEmpty(appSettings.LastOpenedFilePath) &&
+                System.IO.File.Exists(appSettings.LastOpenedFilePath))
+            {
+                _settings = _configManager.LoadFromFile(appSettings.LastOpenedFilePath);
+                Console.WriteLine($"[App] Loaded last opened file: {appSettings.LastOpenedFilePath}");
+            }
+            else
+            {
+                if (_configManager.ConfigExists())
+                {
+                    _settings = _configManager.Load();
+                    Console.WriteLine("[App] Loaded default config.json");
+                }
+                else
+                {
+                    _settings = CounterSettings.CreateDefault();
+                    Console.WriteLine("[App] No config found, using default settings");
+                }
+            }
 
             _counterManager = new CounterManager();
             _counterManager.LoadCounters(_settings.Counters);
@@ -43,7 +64,7 @@ namespace CounterCounter
             var helper = new WindowInteropHelper(_hiddenWindow);
             IntPtr hwnd = helper.Handle;
 
-            _mainWindow = new MainWindow(_counterManager, _configManager, _settings);
+            _mainWindow = new MainWindow(_counterManager, _configManager, _settings, appSettings);
             _mainWindow.SetHwnd(hwnd);
 
             _mainWindow.Show();

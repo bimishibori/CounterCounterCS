@@ -2,7 +2,6 @@
 using System;
 using System.IO;
 using System.Net;
-using System.Reflection;
 
 namespace CounterCounter.Server
 {
@@ -12,8 +11,7 @@ namespace CounterCounter.Server
 
         public StaticFileProvider()
         {
-            string exePath = Assembly.GetExecutingAssembly().Location;
-            string exeDir = Path.GetDirectoryName(exePath) ?? Environment.CurrentDirectory;
+            string exeDir = AppContext.BaseDirectory;
             _wwwrootPath = Path.Combine(exeDir, "wwwroot");
         }
 
