@@ -53,6 +53,7 @@ body {
 .counter-name {
     font-size: 1.8em;
     font-weight: normal;
+    white-space: nowrap;
     text-shadow: 3px 0 0 rgba(0, 0, 0, 0.8), -3px 0 0 rgba(0, 0, 0, 0.8), 0 3px 0 rgba(0, 0, 0, 0.8), 0 -3px 0 rgba(0, 0, 0, 0.8);
     filter: contrast(1.5);
 }

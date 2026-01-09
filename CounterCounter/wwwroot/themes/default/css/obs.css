@@ -94,6 +94,7 @@ body {
     font-weight: bold; /* 太字 */
     margin-bottom: 10px; /* 下の余白 */
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8); /* 影: 視認性向上 */
+    white-space: nowrap; /* 改行しない */
     /* 色はJavaScriptから動的に設定されます */
 }
 

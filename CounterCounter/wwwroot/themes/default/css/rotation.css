@@ -115,6 +115,7 @@ body {
     font-family: 'Arial', sans-serif; /* フォント: お好みで変更 */
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8); /* 影: 視認性向上 */
     letter-spacing: 0; /* 文字間隔: デフォルト */
+    white-space: nowrap; /* 改行しない */
     /* 色はJavaScriptから動的に設定されます */
 }
 
