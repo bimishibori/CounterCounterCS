@@ -79,6 +79,11 @@
                     <TextBlock Text="OBS表示用URL" FontSize="20" FontWeight="Bold" Foreground="#e0e0e0" Margin="0,0,0,15"/>
                     <TextBlock Text="このURLをOBSのブラウザソースに設定してください" FontSize="12" Foreground="#808080" Margin="0,0,0,10"/>
 
+                    <TextBlock Text="【スライドイン表示】カウンター変更時のみ、一定時間だけ表示" 
+                               FontSize="13" FontWeight="Bold" Foreground="#00d4ff" Margin="0,5,0,8"/>
+                    <TextBlock Text="ゲーム画面を邪魔しない表示方式です。カウンターの値が変わった時だけ画面に表示されます。" 
+                               FontSize="11" Foreground="#999999" TextWrapping="Wrap" Margin="0,0,0,10"/>
+
                     <Border Background="#0d0d0d" CornerRadius="6" Padding="15" Margin="0,0,0,15">
                         <TextBlock x:Name="ObsUrlText" 
                                    FontFamily="Consolas" 
@@ -87,14 +92,19 @@
                                    TextWrapping="Wrap"/>
                     </Border>
 
-                    <StackPanel Orientation="Horizontal">
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,25">
                         <Button Content="ブラウザで開く" Click="OpenObsUrl_Click" Style="{StaticResource ModernButton}" 
                                 Width="150" Margin="0,0,15,0"/>
                         <Button Content="URLをコピー" Click="CopyObsUrl_Click" Style="{StaticResource ModernButton}" 
                                 Width="150"/>
                     </StackPanel>
 
-                    <Border Background="#0d0d0d" CornerRadius="6" Padding="15" Margin="0,15,0,15">
+                    <TextBlock Text="【ローテーション表示】複数カウンターを順番に常時表示" 
+                               FontSize="13" FontWeight="Bold" Foreground="#00d4ff" Margin="0,5,0,8"/>
+                    <TextBlock Text="複数のカウンターを自動で切り替えて表示し続けます。常にカウンターを表示したい場合に便利です。" 
+                               FontSize="11" Foreground="#999999" TextWrapping="Wrap" Margin="0,0,0,10"/>
+
+                    <Border Background="#0d0d0d" CornerRadius="6" Padding="15" Margin="0,0,0,15">
                         <TextBlock x:Name="RotateUrlText" 
                                    FontFamily="Consolas" 
                                    FontSize="14" 
