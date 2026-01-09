@@ -3,7 +3,7 @@ namespace CounterCounter.Server
 {
     public class HtmlContentProvider
     {
-        public string GenerateObsHtml(int wsPort, int intervalMs = 3000)
+        public string GenerateObsHtml(int wsPort, int intervalMs, string theme)
         {
             return $@"<!DOCTYPE html>
 <html lang=""ja"">
@@ -11,16 +11,16 @@ namespace CounterCounter.Server
     <meta charset=""UTF-8"">
     <meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">
     <title>Counter Counter - OBS Display</title>
-    <link rel=""stylesheet"" href=""/css/obs.css"">
+    <link rel=""stylesheet"" href=""/themes/{theme}/css/obs.css"">
 </head>
 <body data-ws-port=""{wsPort}"" data-slidein-interval=""{intervalMs}"">
     <div id=""counter-display""></div>
-    <script src=""/js/obs.js""></script>
+    <script src=""/themes/{theme}/js/obs.js""></script>
 </body>
 </html>";
         }
 
-        public string GenerateRotationHtml(int wsPort, int intervalMs = 5000)
+        public string GenerateRotationHtml(int wsPort, int intervalMs, string theme)
         {
             return $@"<!DOCTYPE html>
 <html lang=""ja"">
@@ -28,14 +28,13 @@ namespace CounterCounter.Server
     <meta charset=""UTF-8"">
     <meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">
     <title>Counter Counter - Rotation Display</title>
-    <link rel=""stylesheet"" href=""/css/rotation.css"">
+    <link rel=""stylesheet"" href=""/themes/{theme}/css/rotation.css"">
 </head>
 <body data-ws-port=""{wsPort}"" data-rotation-interval=""{intervalMs}"">
     <div id=""counter-display""></div>
-    <script src=""/js/rotation.js""></script>
+    <script src=""/themes/{theme}/js/rotation.js""></script>
 </body>
 </html>";
         }
-
     }
 }

@@ -1,0 +1,113 @@
+﻿/* ================================================================================
+   Counter Counter - 3D Theme (立体的)
+   ================================================================================
+   
+   【テーマコンセプト】
+   立体的な3Dデザイン
+   - 多重シャドウで奥行き
+   - 遠近効果
+   - 回転アニメーション
+   
+   ================================================================================ */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial Black', 'Impact', sans-serif;
+    background: transparent;
+    color: #ffffff;
+    overflow: hidden;
+    perspective: 1000px;
+}
+
+#counter-display {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding-top: 80px;
+    position: relative;
+}
+
+.counter-item {
+    text-align: center;
+    position: absolute;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%) translateZ(0);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    transform-style: preserve-3d;
+}
+
+    .counter-item.visible {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+.counter-name {
+    font-size: 2.5em;
+    font-weight: bold;
+    margin-bottom: 15px;
+    text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3), 4px 4px 0 rgba(0, 0, 0, 0.2), 6px 6px 0 rgba(0, 0, 0, 0.1), 8px 8px 10px rgba(0, 0, 0, 0.5);
+    transform: translateZ(20px);
+}
+
+.counter-value {
+    font-size: 12em;
+    font-weight: bold;
+    position: relative;
+    text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.3), 6px 6px 0 rgba(0, 0, 0, 0.2), 9px 9px 0 rgba(0, 0, 0, 0.1), 12px 12px 0 rgba(0, 0, 0, 0.08), 15px 15px 20px rgba(0, 0, 0, 0.6);
+    transform: translateZ(40px);
+}
+
+    .counter-value.flash {
+        animation: threed-flash 0.3s;
+    }
+
+    .counter-value.slide-up {
+        animation: threed-slide-up 0.4s ease-out;
+    }
+
+    .counter-value.slide-down {
+        animation: threed-slide-down 0.4s ease-out;
+    }
+
+@keyframes threed-flash {
+    0%, 100% {
+        transform: translateZ(40px) scale(1) rotateY(0deg);
+    }
+
+    50% {
+        transform: translateZ(80px) scale(1.15) rotateY(5deg);
+    }
+}
+
+@keyframes threed-slide-up {
+    0% {
+        transform: translateZ(0px) translateY(100px) rotateX(-30deg);
+        opacity: 0;
+    }
+
+    100% {
+        transform: translateZ(40px) translateY(0) rotateX(0deg);
+        opacity: 1;
+    }
+}
+
+@keyframes threed-slide-down {
+    0% {
+        transform: translateZ(0px) translateY(-100px) rotateX(30deg);
+        opacity: 0;
+    }
+
+    100% {
+        transform: translateZ(40px) translateY(0) rotateX(0deg);
+        opacity: 1;
+    }
+}

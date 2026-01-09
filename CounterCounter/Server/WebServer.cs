@@ -16,11 +16,12 @@ namespace CounterCounter.Server
         private readonly WebSocketHandler _wsHandler;
         private readonly int _rotationIntervalMs;
         private readonly int _slideInIntervalMs;
+        private readonly string _selectedTheme;
         private bool _isRunning;
 
         public int Port { get; private set; }
 
-        public WebServer(CounterManager counterManager, int rotationIntervalMs = 5000, int slideInIntervalMs = 5000)
+        public WebServer(CounterManager counterManager, int rotationIntervalMs, int slideInIntervalMs, string selectedTheme)
         {
             _listener = new HttpListener();
             _counterManager = counterManager;
@@ -30,6 +31,7 @@ namespace CounterCounter.Server
             _wsHandler = new WebSocketHandler(counterManager);
             _rotationIntervalMs = rotationIntervalMs;
             _slideInIntervalMs = slideInIntervalMs;
+            _selectedTheme = selectedTheme;
         }
 
         public async Task StartAsync(int startPort = 9000)
@@ -111,19 +113,19 @@ namespace CounterCounter.Server
 
                 if (path == "/obs.html")
                 {
-                    string html = _htmlProvider.GenerateObsHtml(Port, _slideInIntervalMs);
+                    string html = _htmlProvider.GenerateObsHtml(Port, _slideInIntervalMs, _selectedTheme);
                     await SendHtmlResponseAsync(context, html);
                     return;
                 }
 
                 if (path == "/rotation.html")
                 {
-                    string html = _htmlProvider.GenerateRotationHtml(Port, _rotationIntervalMs);
+                    string html = _htmlProvider.GenerateRotationHtml(Port, _rotationIntervalMs, _selectedTheme);
                     await SendHtmlResponseAsync(context, html);
                     return;
                 }
 
-                if (path.StartsWith("/css/") || path.StartsWith("/js/"))
+                if (path.StartsWith("/themes/") || path.StartsWith("/css/") || path.StartsWith("/js/"))
                 {
                     _staticFileProvider.ServeFile(context, path);
                     return;

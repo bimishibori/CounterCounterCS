@@ -1,4 +1,7 @@
-﻿/* CounterCounter/wwwroot/css/rotation.css */
+﻿/* ================================================================================
+   Counter Counter - Retro Theme (ローテーション表示)
+   ================================================================================ */
+
 * {
     margin: 0;
     padding: 0;
@@ -6,10 +9,11 @@
 }
 
 body {
-    font-family: 'Arial', sans-serif;
+    font-family: 'Courier New', 'Consolas', monospace;
     background: transparent;
-    color: #ffffff;
+    color: #00ff00;
     overflow: hidden;
+    image-rendering: pixelated; /* 主要ブラウザでサポート */
 }
 
 #counter-display {
@@ -29,7 +33,7 @@ body {
     transform: translate(-50%, 0) scale(0.8);
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.5s ease, transform 0.5s ease;
+    transition: opacity 0.1s steps(3), transform 0.3s steps(5);
 }
 
     .counter-item.active {
@@ -41,52 +45,51 @@ body {
 .counter-display-line {
     display: inline-flex;
     align-items: center;
-    gap: 15px;
+    gap: 20px;
 }
 
 .counter-name {
-    font-size: 2.8em;
+    font-size: 3em;
     font-weight: bold;
-    font-family: 'Arial', sans-serif;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
-    letter-spacing: 0;
+    text-shadow: 4px 0 0 rgba(0, 0, 0, 0.8), -4px 0 0 rgba(0, 0, 0, 0.8), 0 4px 0 rgba(0, 0, 0, 0.8), 0 -4px 0 rgba(0, 0, 0, 0.8);
+    filter: contrast(1.5);
 }
 
 .counter-value {
-    font-size: 5em;
+    font-size: 7em;
     font-weight: bold;
-    font-family: 'Courier New', monospace;
-    text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.8);
     position: relative;
+    text-shadow: 6px 0 0 rgba(0, 0, 0, 0.8), -6px 0 0 rgba(0, 0, 0, 0.8), 0 6px 0 rgba(0, 0, 0, 0.8), 0 -6px 0 rgba(0, 0, 0, 0.8);
+    filter: contrast(1.5);
 }
 
     .counter-value.flash {
-        animation: flash 0.3s;
+        animation: retro-flash 0.2s steps(2);
     }
 
     .counter-value.slide-up {
-        animation: slideUp 0.3s ease-out;
+        animation: retro-slide-up 0.3s steps(5);
     }
 
     .counter-value.slide-down {
-        animation: slideDown 0.3s ease-out;
+        animation: retro-slide-down 0.3s steps(5);
     }
 
-@keyframes flash {
+@keyframes retro-flash {
     0%, 100% {
         transform: scale(1);
-        opacity: 1;
+        filter: contrast(1.5);
     }
 
     50% {
         transform: scale(1.2);
-        opacity: 0.7;
+        filter: contrast(2.5) brightness(2);
     }
 }
 
-@keyframes slideUp {
+@keyframes retro-slide-up {
     0% {
-        transform: translateY(30px);
+        transform: translateY(50px);
         opacity: 0;
     }
 
@@ -96,9 +99,9 @@ body {
     }
 }
 
-@keyframes slideDown {
+@keyframes retro-slide-down {
     0% {
-        transform: translateY(-30px);
+        transform: translateY(-50px);
         opacity: 0;
     }
 

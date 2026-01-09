@@ -1,0 +1,262 @@
+﻿/* ================================================================================
+   Counter Counter - OBS表示用スタイルシート (ローテーション表示)
+   ================================================================================
+   
+   【このファイルについて】
+   このCSSファイルは、OBSのブラウザソースで表示されるカウンターの見た目を
+   カスタマイズするためのものです（ローテーション表示用）。
+   
+   【スライドイン表示との違い】
+   - スライドイン: カウンター値が変わった時だけ表示
+   - ローテーション: 常にカウンターを表示し、定期的に切り替え
+   
+   【カスタマイズ方法】
+   1. wwwroot/themes/フォルダに新しいテーマフォルダを作成
+      例: wwwroot/themes/my_theme/
+   
+   2. その中にcss/rotation.cssを配置
+      例: wwwroot/themes/my_theme/css/rotation.css
+   
+   3. Counter Counterの「OBS設定」画面でテーマを選択
+   
+   【カスタマイズのポイント】
+   - フォント、色、サイズ、アニメーションなど自由に変更可能
+   - #counter-display: 全体のコンテナ
+   - .counter-item: 各カウンターの枠
+   - .counter-item.active: 表示中のカウンター
+   - .counter-display-line: カウンター名と値の横並びレイアウト
+   - .counter-name: カウンター名の表示
+   - .counter-value: カウンター値（数字）の表示
+   - .flash, .slide-up, .slide-down: アニメーション用クラス
+   
+   【注意事項】
+   - クラス名（.counter-item など）は変更しないでください
+   - JavaScriptから参照されているため、クラス名変更するとエラーになります
+   
+   ================================================================================ */
+
+/* ================================================================================
+   基本設定
+   ================================================================================ */
+
+/* 全要素の余白・パディングをリセット */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box; /* 幅計算を楽にする */
+}
+
+/* body要素: OBSで表示される全体の背景 */
+body {
+    font-family: 'Arial', sans-serif; /* フォント: お好みで変更可能 */
+    background: transparent; /* 背景透明: OBSで透過表示するため */
+    color: #ffffff; /* デフォルトの文字色: 白 */
+    overflow: hidden; /* スクロールバー非表示 */
+}
+
+/* ================================================================================
+   カウンター表示エリア
+   ================================================================================ */
+
+/* #counter-display: カウンター全体を包むコンテナ */
+#counter-display {
+    display: flex; /* フレックスボックスで配置 */
+    justify-content: center; /* 横方向: 中央揃え */
+    align-items: flex-start; /* 縦方向: 上寄せ */
+    min-height: 100vh; /* 最小高さ: 画面全体 */
+    padding-top: 80px; /* 上部の余白: お好みで調整 */
+    position: relative; /* 子要素の絶対配置の基準 */
+}
+
+/* ================================================================================
+   カウンターカード (各カウンターの枠)
+   ================================================================================ */
+
+/* .counter-item: 各カウンターの表示ブロック */
+.counter-item {
+    text-align: center; /* テキスト中央揃え */
+    position: absolute; /* 絶対配置: 重ねて表示するため */
+    top: 80px; /* 上からの位置: padding-topと合わせて調整 */
+    left: 50%; /* 左から50%の位置 */
+    /* 初期状態: 縮小・透明 */
+    transform: translate(-50%, 0) scale(0.8); /* 中央揃え + 80%に縮小 */
+    opacity: 0; /* 透明 */
+    pointer-events: none; /* マウスイベント無効 */
+    /* トランジション: 滑らかに変化 */
+    transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+    /* .counter-item.active: 表示中のカウンター */
+    .counter-item.active {
+        opacity: 1; /* 不透明: 表示 */
+        transform: translate(-50%, 0) scale(1); /* 中央揃え + 等倍 */
+        pointer-events: auto; /* マウスイベント有効 */
+    }
+
+/* ================================================================================
+   カウンター名と値の横並びレイアウト
+   ================================================================================ */
+
+/* .counter-display-line: カウンター名と値を横並びで表示 */
+.counter-display-line {
+    display: inline-flex; /* インラインフレックスボックス */
+    align-items: center; /* 縦方向: 中央揃え */
+    gap: 15px; /* 要素間の間隔: 15px */
+}
+
+/* ================================================================================
+   カウンター名
+   ================================================================================ */
+
+/* .counter-name: カウンターの名前部分 */
+.counter-name {
+    font-size: 2.8em; /* フォントサイズ: お好みで変更 */
+    font-weight: bold; /* 太字 */
+    font-family: 'Arial', sans-serif; /* フォント: お好みで変更 */
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8); /* 影: 視認性向上 */
+    letter-spacing: 0; /* 文字間隔: デフォルト */
+    /* 色はJavaScriptから動的に設定されます */
+}
+
+/* ================================================================================
+   カウンター値（数字）
+   ================================================================================ */
+
+/* .counter-value: カウンターの数値部分 */
+.counter-value {
+    font-size: 5em; /* フォントサイズ: 大きく表示 */
+    font-weight: bold; /* 太字 */
+    font-family: 'Courier New', monospace; /* 等幅フォント: 数字が見やすい */
+    text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.8); /* 影: 視認性向上 */
+    position: relative; /* アニメーションの基準 */
+    /* 色はJavaScriptから動的に設定されます */
+}
+
+    /* ================================================================================
+   アニメーション
+   ================================================================================ */
+
+    /* .counter-value.flash: フラッシュエフェクト（点滅） */
+    .counter-value.flash {
+        animation: flash 0.3s; /* flashアニメーションを0.3秒間実行 */
+    }
+
+    /* .counter-value.slide-up: 上方向スライドイン（カウンター増加時） */
+    .counter-value.slide-up {
+        animation: slideUp 0.3s ease-out; /* slideUpアニメーションを0.3秒間実行 */
+    }
+
+    /* .counter-value.slide-down: 下方向スライドイン（カウンター減少時） */
+    .counter-value.slide-down {
+        animation: slideDown 0.3s ease-out; /* slideDownアニメーションを0.3秒間実行 */
+    }
+
+/* ================================================================================
+   アニメーション定義
+   ================================================================================ */
+
+/* flashアニメーション: 拡大・縮小で点滅効果 */
+@keyframes flash {
+    0%, 100% {
+        transform: scale(1); /* 開始・終了: 等倍 */
+        opacity: 1; /* 不透明 */
+    }
+
+    50% {
+        transform: scale(1.2); /* 中間: 1.2倍に拡大 */
+        opacity: 0.7; /* やや透明 */
+    }
+}
+
+/* slideUpアニメーション: 下から上へスライド */
+@keyframes slideUp {
+    0% {
+        transform: translateY(30px); /* 開始: 下に30px */
+        opacity: 0; /* 透明 */
+    }
+
+    100% {
+        transform: translateY(0); /* 終了: 元の位置 */
+        opacity: 1; /* 不透明 */
+    }
+}
+
+/* slideDownアニメーション: 上から下へスライド */
+@keyframes slideDown {
+    0% {
+        transform: translateY(-30px); /* 開始: 上に30px */
+        opacity: 0; /* 透明 */
+    }
+
+    100% {
+        transform: translateY(0); /* 終了: 元の位置 */
+        opacity: 1; /* 不透明 */
+    }
+}
+
+/* ================================================================================
+   カスタマイズ例（コメントアウトされています）
+   ================================================================================ */
+
+/*
+   --- 例1: フォント変更 ---
+   
+   .counter-name {
+       font-family: 'Impact', sans-serif;
+   }
+   
+   .counter-value {
+       font-family: 'Impact', sans-serif;
+   }
+*/
+
+/*
+   --- 例2: 影を強くする ---
+   
+   .counter-name {
+       text-shadow: 4px 4px 8px rgba(0, 0, 0, 1);
+   }
+   
+   .counter-value {
+       text-shadow: 6px 6px 12px rgba(0, 0, 0, 1);
+   }
+*/
+
+/*
+   --- 例3: カウンターの切り替えアニメーションを変更 ---
+   
+   .counter-item {
+       transition: opacity 1s ease, transform 1s ease;
+   }
+   
+   .counter-item.active {
+       transform: translate(-50%, 0) scale(1.1) rotate(5deg);
+   }
+*/
+
+/*
+   --- 例4: 背景を追加（透過しない場合） ---
+   
+   body {
+       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+   }
+*/
+
+/*
+   --- 例5: 縦並びレイアウトに変更 ---
+   
+   .counter-display-line {
+       flex-direction: column;
+       gap: 10px;
+   }
+*/
+
+/*
+   --- 例6: カウンター値に枠線を追加 ---
+   
+   .counter-value {
+       border: 3px solid #ffffff;
+       padding: 10px 20px;
+       border-radius: 10px;
+   }
+*/

@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="CounterCounter.UI.Views.ConnectionInfoView"
+﻿<UserControl x:Class="CounterCounter.UI.Views.ObsSettingsView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              Background="#0f0f0f">
@@ -50,7 +50,26 @@
 
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel Margin="30">
-            <TextBlock Text="接続情報" FontSize="28" FontWeight="Bold" Foreground="#00d4ff" Margin="0,0,0,30"/>
+            <TextBlock Text="OBS設定" FontSize="28" FontWeight="Bold" Foreground="#00d4ff" Margin="0,0,0,30"/>
+
+            <Border Background="#1a1a1a" CornerRadius="12" Padding="30" Margin="0,0,0,20">
+                <Border.Effect>
+                    <DropShadowEffect Color="Black" BlurRadius="20" ShadowDepth="5" Opacity="0.5"/>
+                </Border.Effect>
+                <StackPanel>
+                    <TextBlock Text="テーマ選択" FontSize="20" FontWeight="Bold" Foreground="#e0e0e0" Margin="0,0,0,15"/>
+                    <TextBlock Text="カウンター表示のデザインを変更できます" FontSize="12" Foreground="#808080" Margin="0,0,0,10"/>
+
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
+                        <TextBlock Text="テーマ:" VerticalAlignment="Center" Width="80" Foreground="#e0e0e0" FontSize="14"/>
+                        <ComboBox x:Name="ThemeComboBox" Width="200" SelectionChanged="ThemeComboBox_SelectionChanged"
+                                  Background="#0d0d0d" Foreground="#000000" BorderBrush="#333333"/>
+                    </StackPanel>
+
+                    <TextBlock Text="テーマは wwwroot/themes/ フォルダに追加できます" 
+                               FontSize="11" Foreground="#666666" TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
 
             <Border Background="#1a1a1a" CornerRadius="12" Padding="30" Margin="0,0,0,20">
                 <Border.Effect>

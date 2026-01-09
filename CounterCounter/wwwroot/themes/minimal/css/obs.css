@@ -1,0 +1,86 @@
+﻿/* ================================================================================
+   Counter Counter - Minimal Theme (超シンプル)
+   ================================================================================
+   
+   【テーマコンセプト】
+   極限まで装飾を削ぎ落としたミニマルデザイン
+   - モノクロ
+   - アニメーションなし（軽量）
+   - シンプルなフォント
+   
+   ================================================================================ */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Helvetica Neue', 'Arial', sans-serif;
+    background: transparent;
+    color: #ffffff;
+    overflow: hidden;
+}
+
+#counter-display {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding-top: 100px;
+    position: relative;
+}
+
+.counter-item {
+    text-align: center;
+    position: absolute;
+    top: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+
+    .counter-item.visible {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+.counter-name {
+    font-size: 1.8em;
+    font-weight: 300;
+    margin-bottom: 20px;
+    letter-spacing: 0.05em;
+    text-transform: lowercase;
+}
+
+.counter-value {
+    font-size: 10em;
+    font-weight: 100;
+    font-family: 'Helvetica Neue', 'Arial', sans-serif;
+    position: relative;
+}
+
+    .counter-value.flash {
+        animation: none;
+    }
+
+    .counter-value.slide-up {
+        animation: minimal-fade 0.2s ease;
+    }
+
+    .counter-value.slide-down {
+        animation: minimal-fade 0.2s ease;
+    }
+
+@keyframes minimal-fade {
+    0% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}

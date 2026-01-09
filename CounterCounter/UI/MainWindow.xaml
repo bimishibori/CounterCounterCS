@@ -166,7 +166,7 @@
                             Style="{StaticResource ModernButton}" Margin="15,5" Background="#00d4ff"/>
                     <Button x:Name="NavServerButton" Content="サーバー設定" Click="NavServer_Click" 
                             Style="{StaticResource ModernButton}" Margin="15,5" Background="#444444"/>
-                    <Button x:Name="NavConnectionButton" Content="接続情報" Click="NavConnection_Click" 
+                    <Button x:Name="NavObsButton" Content="OBS設定" Click="NavObs_Click" 
                             Style="{StaticResource ModernButton}" Margin="15,5" Background="#444444"/>
 
                     <Border Height="1" Background="#2a2a2a" Margin="15,20"/>

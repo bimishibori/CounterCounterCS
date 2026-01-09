@@ -40,7 +40,7 @@ namespace CounterCounter.UI
 
         private CounterManagementView? _counterManagementView;
         private ServerSettingsView? _serverSettingsView;
-        private ConnectionInfoView? _connectionInfoView;
+        private ObsSettingsView? _obsSettingsView;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -372,7 +372,7 @@ namespace CounterCounter.UI
         {
             _counterManagementView = null;
             _serverSettingsView = null;
-            _connectionInfoView = null;
+            _obsSettingsView = null;
 
             ShowCountersView();
         }
@@ -468,11 +468,11 @@ namespace CounterCounter.UI
             UpdateNavButtons(NavServerButton);
         }
 
-        private void NavConnection_Click(object sender, RoutedEventArgs e)
+        private void NavObs_Click(object sender, RoutedEventArgs e)
         {
             SaveSettings();
-            ShowConnectionInfoView();
-            UpdateNavButtons(NavConnectionButton);
+            ShowObsSettingsView();
+            UpdateNavButtons(NavObsButton);
         }
 
         private void UpdateNavButtons(WpfButton activeButton)
@@ -482,7 +482,7 @@ namespace CounterCounter.UI
 
             NavCountersButton.Background = inactiveBrush;
             NavServerButton.Background = inactiveBrush;
-            NavConnectionButton.Background = inactiveBrush;
+            NavObsButton.Background = inactiveBrush;
 
             activeButton.Background = activeBrush;
         }
@@ -519,19 +519,20 @@ namespace CounterCounter.UI
             ContentArea.Children.Add(_serverSettingsView);
         }
 
-        private void ShowConnectionInfoView()
+        private void ShowObsSettingsView()
         {
-            if (_connectionInfoView == null)
+            if (_obsSettingsView == null)
             {
-                _connectionInfoView = new ConnectionInfoView(_httpPort, _isServerRunning);
+                _obsSettingsView = new ObsSettingsView(_httpPort, _isServerRunning, _settings);
+                _obsSettingsView.SettingsChanged += OnObsSettingsChanged;
             }
             else
             {
-                _connectionInfoView.UpdateServerStatus(_httpPort, _isServerRunning);
+                _obsSettingsView.UpdateServerStatus(_httpPort, _isServerRunning);
             }
 
             ContentArea.Children.Clear();
-            ContentArea.Children.Add(_connectionInfoView);
+            ContentArea.Children.Add(_obsSettingsView);
         }
 
         private void OnServerSettingsChanged(object? sender, EventArgs e)
@@ -553,6 +554,12 @@ namespace CounterCounter.UI
             SaveSettings();
         }
 
+        private void OnObsSettingsChanged(object? sender, EventArgs e)
+        {
+            MarkAsModified();
+            SaveSettings();
+        }
+
         private void OnForceDisplayRequested(object? sender, string counterId)
         {
             _webServer?.BroadcastForceDisplay(counterId);
@@ -566,7 +573,11 @@ namespace CounterCounter.UI
 
             RegisterHotkeys();
 
-            _webServer = new WebServer(_counterManager, _settings.RotationIntervalMs, _settings.SlideInIntervalMs);
+            _webServer = new WebServer(
+                _counterManager,
+                _settings.RotationIntervalMs,
+                _settings.SlideInIntervalMs,
+                _settings.SelectedTheme);
             Task.Run(async () => await _webServer.StartAsync(port));
 
             _isServerRunning = true;
@@ -577,7 +588,7 @@ namespace CounterCounter.UI
             UpdateTrayIcon();
 
             _serverSettingsView?.UpdateServerStatus(true);
-            _connectionInfoView?.UpdateServerStatus(_httpPort, true);
+            _obsSettingsView?.UpdateServerStatus(_httpPort, true);
         }
 
         private void StopServer()
@@ -595,7 +606,7 @@ namespace CounterCounter.UI
             UpdateTrayIcon();
 
             _serverSettingsView?.UpdateServerStatus(false);
-            _connectionInfoView?.UpdateServerStatus(_httpPort, false);
+            _obsSettingsView?.UpdateServerStatus(_httpPort, false);
         }
 
         private void UpdateServerToggleButton()
