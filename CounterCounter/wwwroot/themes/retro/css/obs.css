@@ -6,9 +6,14 @@
    8bit・16bitゲーム風のドット絵デザイン
    - ピクセルフォント風
    - 限定カラーパレット
-   - ブラウン管TV風スキャンライン
+   
+   【使用フォント】
+   Press Start 2P - Google Fonts の8bitゲーム風フォント
+   https://fonts.google.com/specimen/Press+Start+2P
    
    ================================================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
 * {
     margin: 0;
@@ -17,7 +22,7 @@
 }
 
 body {
-    font-family: 'Courier New', 'Consolas', monospace;
+    font-family: 'Press Start 2P', 'Courier New', monospace;
     background: transparent;
     color: #00ff00;
     overflow: hidden;
@@ -43,7 +48,7 @@ body {
     transform: translateX(-50%);
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.1s steps(3);
+    transition: opacity 0.3s ease;
 }
 
     .counter-item.visible {
@@ -52,31 +57,31 @@ body {
     }
 
 .counter-name {
-    font-size: 2.5em;
-    font-weight: bold;
-    margin-bottom: 15px;
-    text-shadow: 4px 0 0 rgba(0, 0, 0, 0.8), -4px 0 0 rgba(0, 0, 0, 0.8), 0 4px 0 rgba(0, 0, 0, 0.8), 0 -4px 0 rgba(0, 0, 0, 0.8), 4px 4px 0 rgba(0, 0, 0, 0.5);
+    font-size: 1.5em;
+    font-weight: normal;
+    margin-bottom: 20px;
+    text-shadow: 3px 0 0 rgba(0, 0, 0, 0.8), -3px 0 0 rgba(0, 0, 0, 0.8), 0 3px 0 rgba(0, 0, 0, 0.8), 0 -3px 0 rgba(0, 0, 0, 0.8), 3px 3px 0 rgba(0, 0, 0, 0.5);
     filter: contrast(1.5);
 }
 
 .counter-value {
-    font-size: 12em;
-    font-weight: bold;
+    font-size: 6em;
+    font-weight: normal;
     position: relative;
-    text-shadow: 6px 0 0 rgba(0, 0, 0, 0.8), -6px 0 0 rgba(0, 0, 0, 0.8), 0 6px 0 rgba(0, 0, 0, 0.8), 0 -6px 0 rgba(0, 0, 0, 0.8), 6px 6px 0 rgba(0, 0, 0, 0.5);
+    text-shadow: 4px 0 0 rgba(0, 0, 0, 0.8), -4px 0 0 rgba(0, 0, 0, 0.8), 0 4px 0 rgba(0, 0, 0, 0.8), 0 -4px 0 rgba(0, 0, 0, 0.8), 4px 4px 0 rgba(0, 0, 0, 0.5);
     filter: contrast(1.5);
 }
 
     .counter-value.flash {
-        animation: retro-flash 0.2s steps(2);
+        animation: retro-flash 0.3s ease;
     }
 
     .counter-value.slide-up {
-        animation: retro-slide-up 0.3s steps(5);
+        animation: retro-slide-up 0.3s ease-out;
     }
 
     .counter-value.slide-down {
-        animation: retro-slide-down 0.3s steps(5);
+        animation: retro-slide-down 0.3s ease-out;
     }
 
 @keyframes retro-flash {
@@ -85,20 +90,15 @@ body {
         filter: contrast(1.5);
     }
 
-    25%, 75% {
-        transform: scale(1.1);
-        filter: contrast(2) brightness(1.5);
-    }
-
     50% {
         transform: scale(1.2);
-        filter: contrast(2.5) brightness(2);
+        filter: contrast(2) brightness(1.5);
     }
 }
 
 @keyframes retro-slide-up {
     0% {
-        transform: translateY(80px);
+        transform: translateY(50px);
         opacity: 0;
     }
 
@@ -110,7 +110,7 @@ body {
 
 @keyframes retro-slide-down {
     0% {
-        transform: translateY(-80px);
+        transform: translateY(-50px);
         opacity: 0;
     }
 
